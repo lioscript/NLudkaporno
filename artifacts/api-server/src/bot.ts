@@ -31,11 +31,16 @@ export function startBot(): void {
     });
   });
 
+  bot.onText(/\/myid/, (msg: any) => {
+    const chatId = msg.chat.id;
+    bot.sendMessage(chatId, `🆔 Your Telegram ID: \`${msg.from?.id}\``, { parse_mode: "Markdown" });
+  });
+
   bot.onText(/\/adm/, (msg: any) => {
     const chatId = String(msg.chat.id);
     const userId = String(msg.from?.id);
     if (!ADMIN_ID || userId !== ADMIN_ID) {
-      bot.sendMessage(chatId, "❌ You are not authorized.");
+      bot.sendMessage(chatId, `❌ Not authorized.\nYour ID: \`${msg.from?.id}\`\nExpected: \`${ADMIN_ID ?? "not set"}\``, { parse_mode: "Markdown" });
       return;
     }
     const luckMode = getLuckMode();

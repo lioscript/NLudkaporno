@@ -9,6 +9,41 @@ if (tg) {
 
 const BASE = '';
 let allGifts = [];
+
+// ─── Placeholder image generator ─────────────────────────────────────────────
+const placeholderCache = {};
+function getPlaceholder(name) {
+  if (placeholderCache[name]) return placeholderCache[name];
+  const colors = [
+    ['#7c3aed','#a855f7'], ['#db2777','#f472b6'], ['#0891b2','#22d3ee'],
+    ['#059669','#34d399'], ['#d97706','#fbbf24'], ['#dc2626','#f87171'],
+    ['#7c3aed','#ec4899'], ['#0ea5e9','#818cf8'],
+  ];
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) & 0xffff;
+  const [c1, c2] = colors[hash % colors.length];
+  const initials = name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
+  const c = document.createElement('canvas');
+  c.width = 80; c.height = 80;
+  const ctx = c.getContext('2d');
+  const grad = ctx.createLinearGradient(0, 0, 80, 80);
+  grad.addColorStop(0, c1); grad.addColorStop(1, c2);
+  ctx.fillStyle = grad;
+  ctx.roundRect(0, 0, 80, 80, 12);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.9)';
+  ctx.font = 'bold 26px -apple-system, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(initials, 40, 40);
+  const url = c.toDataURL();
+  placeholderCache[name] = url;
+  return url;
+}
+
+function imgWithFallback(src, name, cls = '') {
+  return `<img src="${src}" alt="${name}" class="${cls}" onerror="this.src=getPlaceholder('${name.replace(/'/g,"\\'")}');this.onerror=null" />`;
+}
 let myInventory = [];
 let betGift = null;
 let targetGift = null;
@@ -85,7 +120,7 @@ function makeRouletteItem(gift, extraClass = '') {
   const div = document.createElement('div');
   div.className = 'roulette-item' + (extraClass ? ' ' + extraClass : '');
   div.innerHTML = `
-    <img src="${encodeImageName(gift.image)}" alt="${gift.name}" onerror="this.src=''" />
+    ${imgWithFallback(encodeImageName(gift.image), gift.name)}
     <span class="item-name">${gift.name}</span>
   `;
   return div;
@@ -254,7 +289,7 @@ function renderBetDisplay() {
 
   if (betGift) {
     el.className = 'selected-gift has-gift';
-    el.innerHTML = `<img src="${encodeImageName(betGift.image)}" alt="${betGift.name}" onerror="this.src=''" />`;
+    el.innerHTML = imgWithFallback(encodeImageName(betGift.image), betGift.name);
     priceEl.textContent = `⭐ ${betGift.price.toLocaleString()}`;
   } else {
     el.className = 'selected-gift';
@@ -269,7 +304,7 @@ function renderTargetDisplay() {
 
   if (targetGift) {
     el.className = 'selected-gift has-gift';
-    el.innerHTML = `<img src="${encodeImageName(targetGift.image)}" alt="${targetGift.name}" onerror="this.src=''" />`;
+    el.innerHTML = imgWithFallback(encodeImageName(targetGift.image), targetGift.name);
     priceEl.textContent = `⭐ ${targetGift.price.toLocaleString()}`;
   } else {
     el.className = 'selected-gift';
@@ -319,7 +354,7 @@ function makeBetCard(g) {
   const card = document.createElement('div');
   card.className = 'gift-card' + (betGift?.name === g.name ? ' selected' : '');
   card.innerHTML = `
-    <img src="${encodeImageName(g.image)}" alt="${g.name}" onerror="this.src=''" />
+    ${imgWithFallback(encodeImageName(g.image), g.name)}
     <span class="card-name">${g.name}</span>
     <span class="card-price">⭐ ${g.price?.toLocaleString?.() || g.price}</span>
   `;
@@ -377,7 +412,7 @@ function makeTargetCard(g) {
   const card = document.createElement('div');
   card.className = 'gift-card' + (targetGift?.name === g.name ? ' selected' : '');
   card.innerHTML = `
-    <img src="${encodeImageName(g.image)}" alt="${g.name}" onerror="this.src=''" />
+    ${imgWithFallback(encodeImageName(g.image), g.name)}
     <span class="card-name">${g.name}</span>
     <span class="card-price">⭐ ${g.price.toLocaleString()}</span>
   `;
@@ -405,7 +440,7 @@ function openInventoryModal() {
       card.className = 'gift-card';
       card.style.cursor = 'default';
       card.innerHTML = `
-        <img src="${encodeImageName(g.image)}" alt="${g.name}" onerror="this.src=''" />
+        ${imgWithFallback(encodeImageName(g.image), g.name)}
         <span class="card-name">${g.name}</span>
         <span class="card-price">⭐ ${g.price?.toLocaleString?.() || g.price}</span>
       `;

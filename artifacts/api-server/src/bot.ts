@@ -4,8 +4,8 @@ import { logger } from "./lib/logger.js";
 
 const require = createRequire(import.meta.url);
 
-const BOT_TOKEN = process.env["TELEGRAM_BOT_TOKEN"];
-const ADMIN_ID = process.env["ADMIN_TELEGRAM_ID"];
+const BOT_TOKEN = process.env["TELEGRAM_BOT_TOKEN"]?.trim();
+const ADMIN_ID = process.env["ADMIN_TELEGRAM_ID"]?.trim();
 
 let bot: any = null;
 const ADMIN_AWAITING: Map<string, string> = new Map();

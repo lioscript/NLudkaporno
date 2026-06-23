@@ -3,8 +3,8 @@ import crypto from "node:crypto";
 const BOT_TOKEN = process.env["TELEGRAM_BOT_TOKEN"] ?? "";
 
 export function verifyInitData(initData: string): boolean {
-  // In dev mode without a token, allow all requests
-  if (!BOT_TOKEN) return true;
+  // Allow all requests in dev mode or without a token
+  if (!BOT_TOKEN || process.env["NODE_ENV"] === "development") return true;
 
   try {
     const params = new URLSearchParams(initData);

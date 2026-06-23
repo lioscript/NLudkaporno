@@ -117,145 +117,35 @@ html, body {
   overflow: hidden;
 }
 
-/* Roulette */
-.roulette-section {
-  flex-shrink: 0;
-}
-
-.roulette-wrapper {
-  position: relative;
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  height: 100px;
-  overflow: hidden;
-}
-
-.roulette-track {
-  position: relative;
-  height: 100%;
-  overflow: hidden;
-}
-
-.roulette-items {
+/* Spinner */
+.spinner-section {
+  flex: 1;
+  min-height: 0;
   display: flex;
-  align-items: center;
-  height: 100%;
-  position: absolute;
-  left: 0;
-  top: 0;
-  gap: 6px;
-  padding: 0 8px;
-  will-change: transform;
-}
-
-.roulette-item {
-  flex-shrink: 0;
-  width: 80px;
-  height: 80px;
-  background: var(--bg3);
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  padding: 6px;
-  transition: border-color 0.2s;
+  padding: 4px 0;
 }
 
-.roulette-item.highlight {
-  border-color: var(--accent-light);
-  background: rgba(124,58,237,0.15);
-  box-shadow: 0 0 16px var(--accent-glow);
+.spinner-svg {
+  width: 100%;
+  max-width: 270px;
+  max-height: 270px;
+  height: auto;
+  display: block;
 }
 
-.roulette-item.win-item {
-  border-color: var(--win);
-  background: rgba(34,197,94,0.15);
-  box-shadow: 0 0 16px var(--win-glow);
+@keyframes needlePulse {
+  0%, 100% { filter: drop-shadow(0 0 4px rgba(245,158,11,0.4)); }
+  50% { filter: drop-shadow(0 0 10px rgba(245,158,11,0.7)); }
 }
 
-.roulette-item.lose-item {
-  border-color: var(--lose);
-  background: rgba(239,68,68,0.12);
+.spinner-svg #needle {
+  transition: transform 4s cubic-bezier(0.12, 0, 0.05, 1);
 }
 
-.roulette-item img {
-  width: 48px;
-  height: 48px;
-  object-fit: contain;
-}
-
-.roulette-item .item-name {
-  font-size: 9px;
-  color: var(--text-muted);
-  text-align: center;
-  line-height: 1.2;
-  max-width: 72px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.roulette-marker {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 2px;
-  background: var(--accent-light);
-  box-shadow: 0 0 8px var(--accent-glow);
-  pointer-events: none;
-  z-index: 5;
-}
-
-.roulette-marker::before,
-.roulette-marker::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 0;
-  height: 0;
-}
-
-.roulette-marker::before {
-  top: 0;
-  border-left: 6px solid transparent;
-  border-right: 6px solid transparent;
-  border-top: 8px solid var(--accent-light);
-}
-
-.roulette-marker::after {
-  bottom: 0;
-  border-left: 6px solid transparent;
-  border-right: 6px solid transparent;
-  border-bottom: 8px solid var(--accent-light);
-}
-
-/* Fade edges */
-.roulette-wrapper::before,
-.roulette-wrapper::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 60px;
-  z-index: 2;
-  pointer-events: none;
-}
-
-.roulette-wrapper::before {
-  left: 0;
-  background: linear-gradient(90deg, var(--bg2), transparent);
-}
-
-.roulette-wrapper::after {
-  right: 0;
-  background: linear-gradient(270deg, var(--bg2), transparent);
+.spinner-svg.idle #needle {
+  animation: needlePulse 2s ease-in-out infinite;
 }
 
 /* Panels */

@@ -48,13 +48,14 @@ let myInventory = [];
 let betGift = null;
 let targetGift = null;
 let isSpinning = false;
+let currentNeedleRotation = 0;
 
 // ─── Init ───────────────────────────────────────────────────────────────────
 
 async function init() {
   setupUserInfo();
   await Promise.all([loadGifts(), loadInventory()]);
-  buildIdleRoulette();
+  initSpinner();
 }
 
 function getInitData() {
@@ -100,30 +101,52 @@ function updateInventoryCount() {
   document.getElementById('invCount').textContent = myInventory.length;
 }
 
-// ─── Roulette ───────────────────────────────────────────────────────────────
+// ─── Spinner ────────────────────────────────────────────────────────────────
 
-function buildIdleRoulette() {
-  const items = document.getElementById('rouletteItems');
-  items.innerHTML = '';
+const SPIN_R = 125;
+const SPIN_C = 2 * Math.PI * SPIN_R; // ≈ 785.4
 
-  // Show a shuffled sample of all gifts as decoration
-  const pool = [...allGifts].sort(() => Math.random() - 0.5).slice(0, 20);
-  for (const g of pool) {
-    items.appendChild(makeRouletteItem(g));
-  }
-
-  items.style.transition = 'none';
-  items.style.transform = 'translateX(0)';
+function initSpinner() {
+  drawTicks();
+  drawWinArc(0);
+  document.getElementById('spinnerSvg').classList.add('idle');
 }
 
-function makeRouletteItem(gift, extraClass = '') {
-  const div = document.createElement('div');
-  div.className = 'roulette-item' + (extraClass ? ' ' + extraClass : '');
-  div.innerHTML = `
-    ${imgWithFallback(encodeImageName(gift.image), gift.name)}
-    <span class="item-name">${gift.name}</span>
-  `;
-  return div;
+function drawTicks() {
+  const g = document.getElementById('tickMarks');
+  if (!g) return;
+  g.innerHTML = '';
+  const cx = 150, cy = 150;
+  for (let i = 0; i < 60; i++) {
+    const rad = ((i / 60) * 360 - 90) * Math.PI / 180;
+    const long = i % 5 === 0;
+    const r1 = SPIN_R - 14 + (long ? 0 : 3);
+    const r2 = r1 - (long ? 7 : 4);
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', (cx + r1 * Math.cos(rad)).toFixed(2));
+    line.setAttribute('y1', (cy + r1 * Math.sin(rad)).toFixed(2));
+    line.setAttribute('x2', (cx + r2 * Math.cos(rad)).toFixed(2));
+    line.setAttribute('y2', (cy + r2 * Math.sin(rad)).toFixed(2));
+    line.setAttribute('stroke', long ? '#2e2e44' : '#232336');
+    line.setAttribute('stroke-width', long ? '1.5' : '1');
+    g.appendChild(line);
+  }
+}
+
+function drawWinArc(chance) {
+  const arc = document.getElementById('winArc');
+  if (!arc) return;
+  if (chance <= 0) {
+    arc.setAttribute('opacity', '0');
+    return;
+  }
+  arc.setAttribute('opacity', '1');
+  const arcLen = (chance / 100) * SPIN_C;
+  const gapLen = SPIN_C - arcLen;
+  // Center arc at bottom (6 o'clock). dashoffset formula: (3C/4 + arcLen/2) % C
+  const dashoffset = ((SPIN_C * 3 / 4) + arcLen / 2) % SPIN_C;
+  arc.setAttribute('stroke-dasharray', `${arcLen.toFixed(2)} ${gapLen.toFixed(2)}`);
+  arc.setAttribute('stroke-dashoffset', dashoffset.toFixed(2));
 }
 
 function encodeImageName(imagePath) {
@@ -132,56 +155,30 @@ function encodeImageName(imagePath) {
   return `images/${filename}`;
 }
 
-async function spinRoulette(win) {
-  const track = document.getElementById('rouletteTrack');
-  const items = document.getElementById('rouletteItems');
-  items.innerHTML = '';
-  items.style.transition = 'none';
-  items.style.transform = 'translateX(0)';
+async function spinWheel(win, chance) {
+  const needle = document.getElementById('needle');
+  const svg = document.getElementById('spinnerSvg');
+  svg.classList.remove('idle');
 
-  const ITEM_WIDTH = 86; // 80px + 6px gap
-  const VISIBLE = Math.ceil(track.offsetWidth / ITEM_WIDTH) + 2;
-  const SPIN_COUNT = 40; // number of items to scroll through
-  const CENTER_IDX = SPIN_COUNT + Math.floor(VISIBLE / 2);
-  const TOTAL = SPIN_COUNT + VISIBLE + 10;
+  const winHalf = (chance / 100) * 180; // half-angle of win zone in degrees
+  const spins = (6 + Math.floor(Math.random() * 4)) * 360;
 
-  // Build a pool: mostly random gifts, but result goes at CENTER_IDX
-  const pool = [];
-  for (let i = 0; i < TOTAL; i++) {
-    const randGift = allGifts[Math.floor(Math.random() * allGifts.length)];
-    pool.push(randGift);
+  let finalAngle;
+  if (win) {
+    // Land inside win zone (centered at 0°/down), with small margin
+    finalAngle = (Math.random() * 2 - 1) * winHalf * 0.82;
+  } else {
+    // Land in lose zone (centered opposite at 180°), with spread
+    const loseHalf = Math.max((180 - winHalf) * 0.75, 10);
+    finalAngle = 180 + (Math.random() * 2 - 1) * loseHalf;
   }
 
-  // Place result at center
-  const resultGift = win ? targetGift : betGift;
-  pool[CENTER_IDX] = resultGift;
+  currentNeedleRotation += spins + finalAngle;
+  needle.style.transition = 'transform 4s cubic-bezier(0.12, 0, 0.05, 1)';
+  needle.style.transform = `rotate(${currentNeedleRotation}deg)`;
 
-  for (const g of pool) {
-    const cls = (g === resultGift && pool.indexOf(g) === CENTER_IDX) ? '' : '';
-    items.appendChild(makeRouletteItem(g));
-  }
-
-  // Calculate the offset so CENTER_IDX is at the center of the track
-  const trackCenter = track.offsetWidth / 2;
-  const targetOffset = -(CENTER_IDX * ITEM_WIDTH - trackCenter + ITEM_WIDTH / 2);
-
-  // Force reflow
-  void items.offsetWidth;
-
-  // Animate
-  await new Promise(resolve => {
-    items.style.transition = 'transform 4s cubic-bezier(0.12, 0, 0.05, 1)';
-    items.style.transform = `translateX(${targetOffset}px)`;
-    setTimeout(resolve, 4200);
-  });
-
-  // Highlight result
-  const resultEl = items.children[CENTER_IDX];
-  if (resultEl) {
-    resultEl.classList.add(win ? 'win-item' : 'lose-item');
-  }
-
-  await sleep(300);
+  await sleep(4300);
+  svg.classList.add('idle');
 }
 
 // ─── Upgrade ─────────────────────────────────────────────────────────────────
@@ -215,8 +212,8 @@ async function doUpgrade() {
 
     btn.textContent = 'SPINNING';
 
-    // Spin animation
-    await spinRoulette(data.win);
+    // Spin wheel animation
+    await spinWheel(data.win, data.chance);
 
     // Update inventory
     myInventory = data.newInventory || [];
@@ -237,7 +234,6 @@ async function doUpgrade() {
     alert('Network error, please try again');
   } finally {
     resetSpinState();
-    buildIdleRoulette();
   }
 }
 
@@ -318,8 +314,10 @@ function updateChance() {
   if (betGift && targetGift && betGift.price < targetGift.price) {
     const c = Math.min((betGift.price / targetGift.price) * 82, 82);
     el.textContent = c.toFixed(1) + '%';
+    drawWinArc(c);
   } else {
     el.textContent = '—';
+    drawWinArc(0);
   }
 }
 

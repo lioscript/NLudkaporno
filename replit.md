@@ -1,36 +1,73 @@
-# [Project name]
+# NFT Gift Upgrader
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A Telegram Mini App where users bet Telegram NFT gifts against more expensive ones, spin a roulette, and win or lose them. Inspired by upgrader.pro.
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- `pnpm --filter @workspace/api-server run dev` — start the server (port 8080)
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+
+## Required Environment Secrets
+
+Set these in Replit's Secrets tab before using the bot:
+
+- `TELEGRAM_BOT_TOKEN` — from BotFather after creating your bot
+- `ADMIN_TELEGRAM_ID` — your Telegram user ID (find it via @userinfobot)
+- `MINI_APP_URL` — the deployed URL of this app (set after deploying; the /start command uses it)
 
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
 - API: Express 5
-- DB: PostgreSQL + Drizzle ORM
-- Validation: Zod (`zod/v4`), `drizzle-zod`
-- API codegen: Orval (from OpenAPI spec)
-- Build: esbuild (CJS bundle)
+- DB: Node.js 24 built-in `node:sqlite` (no native compilation needed)
+- Bot: node-telegram-bot-api
+- Frontend: Vanilla JS / HTML / CSS (Telegram Mini App)
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/api-server/src/db.ts` — SQLite schema + query helpers
+- `artifacts/api-server/src/bot.ts` — Telegram bot (/adm command, admin panel)
+- `artifacts/api-server/src/lib/telegram.ts` — initData verification
+- `artifacts/api-server/src/routes/` — API route handlers
+- `artifacts/api-server/public/` — Mini App frontend (HTML/CSS/JS)
+- `artifacts/api-server/public/images/` — NFT gift images (29 bundled)
+- `artifacts/api-server/gifts.json` — 107 gift definitions (name, price, image)
+
+## Core mechanic
+
+Win chance = `(bet_price / target_price) * 82`, capped at 82%.
+Outcome is determined server-side. Admin can force WIN/LOSE via `/adm` command.
+
+## API Endpoints
+
+- `GET /api/gifts` — all gifts sorted by price
+- `GET /api/inventory?initData=...` — user's inventory
+- `POST /api/upgrade` — run upgrade (validates initData, updates DB)
+- `POST /api/admin/give` — admin: give gift to user (requires x-admin-token header)
+- `GET /api/admin/status` — admin: check current luck mode
+
+## Admin Panel
+
+Send `/adm` to the bot (only works for ADMIN_TELEGRAM_ID):
+- 🟢 Force WIN — all upgrades win
+- 🔴 Force LOSE — all upgrades lose
+- ⚪ Reset luck — back to random
+- 🎁 Give gift — add a gift to any user's inventory
+
+## Setup Steps
+
+1. Create bot via BotFather → get token → set `TELEGRAM_BOT_TOKEN`
+2. Get your Telegram ID → set `ADMIN_TELEGRAM_ID`
+3. Deploy this app → set `MINI_APP_URL` to the deployed URL
+4. In BotFather: set Menu Button URL to the deployed URL
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
-
-## Product
-
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Node.js 24 built-in `node:sqlite` avoids native compilation issues (no Python/node-gyp required)
+- Static files served at both `/` and `/api/` prefix to handle Replit proxy (doesn't strip path prefix)
+- initData validation is skipped when `TELEGRAM_BOT_TOKEN` is not set (dev fallback)
+- User identity is `telegram_id` from initData; dev fallback uses `dev_user`
 
 ## User preferences
 
@@ -38,8 +75,6 @@ _Populate as you build — explicit user instructions worth remembering across s
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
-
-## Pointers
-
-- See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details
+- Always run `--experimental-sqlite` flag when starting Node.js (included in start script)
+- The `/api/` prefix is NOT stripped by the Replit proxy, so static assets must be served at `/api/` too
+- Only 29 gift images included in the zip; remaining gifts show broken image (name still shows)

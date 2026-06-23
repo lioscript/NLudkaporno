@@ -1,0 +1,126 @@
+Build a Telegram Mini App NFT Gift Upgrader bot (similar to upgrader.pro but for Telegram NFT gifts).
+
+## Stack
+- Backend: Node.js + Express + node-telegram-bot-api
+- Frontend: Vanilla JS / HTML / CSS as Telegram Mini App
+- Database: SQLite (better-sqlite3) for inventory and admin state
+- Deploy-ready on Replit with PORT env variable
+
+---
+
+## Core mechanic — Upgrader
+
+The user selects a gift from their inventory as "bet", then picks a target gift (must be more expensive). The system calculates win chance and spins a roulette wheel animation.
+
+**Win chance formula:**
+  chance = (bet_price / target_price) * 82
+  Max chance is always capped at 82%.
+
+Example: bet 241⭐ → target 1000⭐ → chance = 241/1000 * 82 = 19.76%
+
+The spin result is determined server-side (random number 0-100 compared to chance). The frontend only shows animation, never controls the outcome.
+
+If WIN → target gift is added to user's inventory, bet gift is removed.
+If LOSE → bet gift is removed, nothing added.
+
+---
+
+## Gift data
+
+Use this JSON as the gifts database (import it directly):
+
+[paste the contents of tg_nft_gifts.json here — the file has 107 gifts with name, price in ⭐ stars, and image path]
+
+Each gift object: { "name": "...", "price": 241, "image": "nft_images/GiftName.png" }
+Images are in the nft_images/ folder — copy them into the project's public/images/ folder.
+
+---
+
+## Telegram Bot setup
+
+1. Create bot with BotFather, set TELEGRAM_BOT_TOKEN in env secrets.
+2. Set Mini App URL via /setmenubutton or inline keyboard button that opens the web app.
+3. Validate every frontend request using Telegram WebApp.initData on the backend (verifyTelegramWebAppData).
+4. User is identified by their Telegram ID from initData.
+
+---
+
+## Inventory system
+
+- Each user has an inventory stored in SQLite: (telegram_id, gift_name, acquired_at)
+- New users start with nothing
+- Inventory is shown in the Mini App with gift images and prices.
+
+---
+
+## Admin panel — command /adm (bot command, only for ADMIN_TELEGRAM_ID from env)
+
+When admin sends /adm, bot replies with inline keyboard with these options:
+
+1. **🟢 Force WIN** — any upgrade attempt wins regardless of chance (admin sees badge in Mini App)
+2. **🔴 Force LOSE** — any upgrade attempt loses regardless of chance
+3. **⚪ Reset luck** — back to normal random mode
+4. **🎁 Give gift** — bot asks: "Enter Telegram ID and gift name" (format: 123456789 Witch Hat), then adds that gift to that user's inventory
+5. **Cancel**
+
+Store admin mode in SQLite table `admin_settings` with key-value pairs:
+  - luck_mode: 'normal' | 'force_win' | 'force_lose'
+
+ADMIN_TELEGRAM_ID is set in Replit env secrets.
+
+---
+
+## Frontend (Mini App UI)
+
+Style: dark theme, animated, similar to upgrader.pro
+Layout:
+- Top: user's Stars balance display + inventory button
+- Center: spinning wheel/roulette animation (canvas or CSS)
+- Left panel: "YOUR BET" — select gift from inventory
+- Right panel: "TARGET GIFT" — browse all gifts sorted cheapest to most expensive
+- Center: big % chance indicator, "UPGRADE" button
+- After spin: WIN (green flash, confetti) or LOSE (red flash) animation
+
+The roulette wheel should scroll through gift images and land on the result dramatically (like upgrader.pro spin animation).
+
+---
+
+## API endpoints (Express)
+
+POST /api/upgrade
+  Body: { initData, betGiftName, targetGiftName }
+  - Validate initData
+  - Calculate chance
+  - Check admin luck_mode
+  - Determine outcome server-side
+  - Update inventory in DB
+  - Return: { win: bool, chance: float, newInventory: [...] }
+
+GET /api/inventory
+  Query: { initData }
+  Returns user's current inventory
+
+GET /api/gifts
+  Returns full gifts list (name, price, image)
+
+POST /api/admin/give (requires admin token header)
+  Body: { telegram_id, gift_name }
+  Adds gift to user inventory
+
+---
+
+## Project structure
+/
+├── bot.js          (Telegram bot, /adm command)
+├── server.js       (Express API)
+├── db.js           (SQLite setup)
+├── public/
+│   ├── index.html  (Mini App)
+│   ├── app.js
+│   ├── style.css
+│   └── images/     (all 107 NFT gift images as .png)
+├── gifts.json      (gift data)
+└── package.json
+
+Start command: node server.js (which also starts bot.js)
+Use PORT env variable for Express.

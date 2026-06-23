@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>NFT Gift Upgrader</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-left">
+        <div class="user-info">
+          <div class="avatar" id="userAvatar">👤</div>
+          <span class="username" id="userName">Loading...</span>
+        </div>
+      </div>
+      <div class="header-right">
+        <button class="inv-btn" id="invBtn">🎁 Inventory <span class="inv-count" id="invCount">0</span></button>
+      </div>
+    </header>
+
+    <!-- Main upgrader area -->
+    <main class="main">
+      <!-- Roulette Strip -->
+      <div class="roulette-section">
+        <div class="roulette-wrapper">
+          <div class="roulette-track" id="rouletteTrack">
+            <div class="roulette-items" id="rouletteItems"></div>
+          </div>
+          <div class="roulette-marker"></div>
+        </div>
+      </div>
+
+      <!-- Panels -->
+      <div class="panels">
+        <!-- Bet panel -->
+        <div class="panel bet-panel">
+          <div class="panel-title">YOUR BET</div>
+          <div class="selected-gift" id="betDisplay" onclick="openBetModal()">
+            <div class="gift-placeholder">
+              <div class="plus-icon">＋</div>
+              <div class="placeholder-text">Select gift</div>
+            </div>
+          </div>
+          <div class="gift-price bet-price" id="betPrice"></div>
+        </div>
+
+        <!-- Center controls -->
+        <div class="center-controls">
+          <div class="chance-display">
+            <div class="chance-label">WIN CHANCE</div>
+            <div class="chance-value" id="chanceValue">—</div>
+          </div>
+          <button class="upgrade-btn" id="upgradeBtn" disabled onclick="doUpgrade()">
+            UPGRADE
+          </button>
+          <div class="luck-mode-badge" id="luckBadge" style="display:none"></div>
+        </div>
+
+        <!-- Target panel -->
+        <div class="panel target-panel">
+          <div class="panel-title">TARGET GIFT</div>
+          <div class="selected-gift" id="targetDisplay" onclick="openTargetModal()">
+            <div class="gift-placeholder">
+              <div class="plus-icon">＋</div>
+              <div class="placeholder-text">Select gift</div>
+            </div>
+          </div>
+          <div class="gift-price target-price" id="targetPrice"></div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Result overlay -->
+    <div class="result-overlay" id="resultOverlay">
+      <div class="result-content" id="resultContent">
+        <div class="result-icon" id="resultIcon"></div>
+        <div class="result-title" id="resultTitle"></div>
+        <div class="result-gift" id="resultGift"></div>
+        <button class="result-close-btn" onclick="closeResult()">Continue</button>
+      </div>
+    </div>
+
+    <!-- Inventory Modal -->
+    <div class="modal" id="invModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <span class="modal-title">🎁 Inventory</span>
+          <button class="modal-close" onclick="closeModal('invModal')">✕</button>
+        </div>
+        <div class="modal-body" id="invModalBody">
+          <div class="loading-spinner"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bet Modal -->
+    <div class="modal" id="betModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <span class="modal-title">Select Bet Gift</span>
+          <button class="modal-close" onclick="closeModal('betModal')">✕</button>
+        </div>
+        <div class="modal-body" id="betModalBody">
+          <div class="loading-spinner"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Target Modal -->
+    <div class="modal" id="targetModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <span class="modal-title">Select Target Gift</span>
+          <button class="modal-close" onclick="closeModal('targetModal')">✕</button>
+        </div>
+        <div class="search-bar">
+          <input type="text" id="targetSearch" placeholder="Search gifts..." oninput="filterTargetGifts()" />
+        </div>
+        <div class="modal-body" id="targetModalBody">
+          <div class="loading-spinner"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confetti container -->
+    <div id="confetti-container"></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

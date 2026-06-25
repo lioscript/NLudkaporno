@@ -615,6 +615,15 @@ function spawnConfetti() {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+function toggleForOther() {
+  const input = document.getElementById('targetUserIdInput');
+  const btn = document.getElementById('forOtherToggle');
+  const visible = input.style.display !== 'none';
+  input.style.display = visible ? 'none' : 'block';
+  btn.textContent = visible ? 'Підкрутити іншому гравцю ▾' : 'Підкрутити іншому гравцю ▴';
+  if (!visible) input.focus();
+}
+
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 // ─── Event Bindings ───────────────────────────────────────────────────────────

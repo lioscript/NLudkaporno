@@ -584,7 +584,22 @@ html, body {
 /* User ID input row */
 .user-id-row {
   padding: 0 12px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
 }
+.for-other-toggle {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 2px 0;
+  text-align: left;
+  opacity: 0.75;
+}
+.for-other-toggle:active { opacity: 0.5; }
 .user-id-row input {
   width: 100%;
   background: #ffffff;

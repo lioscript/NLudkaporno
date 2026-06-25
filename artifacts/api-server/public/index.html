@@ -106,9 +106,10 @@
         </div>
       </div>
 
-      <!-- Target user ID input -->
+      <!-- Target user ID (collapsed by default) -->
       <div class="user-id-row">
-        <input type="text" id="targetUserIdInput" placeholder="🆔 Telegram ID іншого гравця (необов'язково)" inputmode="numeric" />
+        <button class="for-other-toggle" id="forOtherToggle" onclick="toggleForOther()">Підкрутити іншому гравцю ▾</button>
+        <input type="text" id="targetUserIdInput" placeholder="Telegram ID гравця" inputmode="numeric" style="display:none" />
       </div>
     </main>
 

@@ -3,8 +3,8 @@
 const tg = window.Telegram?.WebApp;
 if (tg) {
   tg.expand();
-  tg.setHeaderColor('#0a0a0f');
-  tg.setBackgroundColor('#0a0a0f');
+  tg.setHeaderColor('#f0f4f8');
+  tg.setBackgroundColor('#f0f4f8');
 }
 
 const BASE = '';
@@ -49,18 +49,75 @@ let betGift = null;
 let targetGift = null;
 let isSpinning = false;
 let currentNeedleRotation = 0;
+let currentDetailGift = null;
 
-// ─── Init ───────────────────────────────────────────────────────────────────
+// ─── Sound Engine ─────────────────────────────────────────────────────────────
+let audioCtx = null;
+function getAudio() {
+  if (!audioCtx) {
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {}
+  }
+  return audioCtx;
+}
+
+function playTone(freq, dur, type = 'sine', vol = 0.12, delay = 0) {
+  const ctx = getAudio();
+  if (!ctx) return;
+  try {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = type;
+    osc.frequency.value = freq;
+    const t = ctx.currentTime + delay;
+    gain.gain.setValueAtTime(vol, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    osc.start(t);
+    osc.stop(t + dur + 0.01);
+  } catch (e) {}
+}
+
+function playClick() {
+  playTone(900, 0.04, 'sine', 0.08);
+}
+
+function playUpgradeStart() {
+  playTone(220, 0.15, 'square', 0.06);
+  playTone(330, 0.15, 'square', 0.05, 0.1);
+  playTone(440, 0.25, 'square', 0.05, 0.2);
+}
+
+function playTick(speed = 1) {
+  playTone(700 + Math.random() * 100, 0.025, 'square', 0.04 * speed);
+}
+
+function playWin() {
+  [523, 659, 784, 1047].forEach((f, i) => playTone(f, 0.18, 'sine', 0.15, i * 0.13));
+}
+
+function playLose() {
+  [400, 280, 180].forEach((f, i) => playTone(f, 0.22, 'sine', 0.12, i * 0.18));
+}
+
+function playSell() {
+  playTone(800, 0.06, 'sine', 0.1);
+  playTone(1000, 0.1, 'sine', 0.1, 0.07);
+}
+
+// ─── Init ────────────────────────────────────────────────────────────────────
 
 async function init() {
   setupUserInfo();
   await Promise.all([loadGifts(), loadInventory()]);
   initSpinner();
+  // Unlock audio on first interaction
+  document.addEventListener('touchstart', () => getAudio(), { once: true });
+  document.addEventListener('click', () => getAudio(), { once: true });
 }
 
 function getInitData() {
   if (tg?.initData) return tg.initData;
-  // Dev fallback
   return 'user=%7B%22id%22%3A1%2C%22first_name%22%3A%22Dev%22%7D&hash=dev';
 }
 
@@ -74,7 +131,7 @@ function setupUserInfo() {
   }
 }
 
-// ─── Data Loading ───────────────────────────────────────────────────────────
+// ─── Data Loading ────────────────────────────────────────────────────────────
 
 async function loadGifts() {
   try {
@@ -101,7 +158,7 @@ function updateInventoryCount() {
   document.getElementById('invCount').textContent = myInventory.length;
 }
 
-// ─── Spinner ────────────────────────────────────────────────────────────────
+// ─── Spinner ─────────────────────────────────────────────────────────────────
 
 const SPIN_R = 125;
 const SPIN_C = 2 * Math.PI * SPIN_R; // ≈ 785.4
@@ -127,7 +184,7 @@ function drawTicks() {
     line.setAttribute('y1', (cy + r1 * Math.sin(rad)).toFixed(2));
     line.setAttribute('x2', (cx + r2 * Math.cos(rad)).toFixed(2));
     line.setAttribute('y2', (cy + r2 * Math.sin(rad)).toFixed(2));
-    line.setAttribute('stroke', long ? '#2e2e44' : '#232336');
+    line.setAttribute('stroke', long ? '#a0aec0' : '#cbd5e1');
     line.setAttribute('stroke-width', long ? '1.5' : '1');
     g.appendChild(line);
   }
@@ -143,7 +200,6 @@ function drawWinArc(chance) {
   arc.setAttribute('opacity', '1');
   const arcLen = (chance / 100) * SPIN_C;
   const gapLen = SPIN_C - arcLen;
-  // Center arc at bottom (6 o'clock). dashoffset formula: (3C/4 + arcLen/2) % C
   const dashoffset = ((SPIN_C * 3 / 4) + arcLen / 2) % SPIN_C;
   arc.setAttribute('stroke-dasharray', `${arcLen.toFixed(2)} ${gapLen.toFixed(2)}`);
   arc.setAttribute('stroke-dashoffset', dashoffset.toFixed(2));
@@ -151,7 +207,6 @@ function drawWinArc(chance) {
 
 function encodeImageName(imagePath) {
   const filename = imagePath.split('/').pop();
-  // Use relative path so proxy prefix is preserved (resolves to /api/images/...)
   return `images/${filename}`;
 }
 
@@ -160,15 +215,13 @@ async function spinWheel(win, chance) {
   const svg = document.getElementById('spinnerSvg');
   svg.classList.remove('idle');
 
-  const winHalf = (chance / 100) * 180; // half-angle of win zone in degrees
+  const winHalf = (chance / 100) * 180;
   const spins = (6 + Math.floor(Math.random() * 4)) * 360;
 
   let finalAngle;
   if (win) {
-    // Land inside win zone (centered at 0°/down), with small margin
     finalAngle = (Math.random() * 2 - 1) * winHalf * 0.82;
   } else {
-    // Land in lose zone (centered opposite at 180°), with spread
     const loseHalf = Math.max((180 - winHalf) * 0.75, 10);
     finalAngle = 180 + (Math.random() * 2 - 1) * loseHalf;
   }
@@ -177,11 +230,23 @@ async function spinWheel(win, chance) {
   needle.style.transition = 'transform 4s cubic-bezier(0.12, 0, 0.05, 1)';
   needle.style.transform = `rotate(${currentNeedleRotation}deg)`;
 
+  // Schedule tick sounds that decelerate with the needle
+  const totalDur = 4000;
+  let delay = 40;
+  let elapsed = 0;
+  while (elapsed < totalDur - 600) {
+    const d = elapsed;
+    const speed = delay < 100 ? 1 : delay < 200 ? 0.7 : 0.4;
+    setTimeout(() => playTick(speed), d);
+    elapsed += delay;
+    delay = Math.min(delay * 1.055, 450);
+  }
+
   await sleep(4300);
   svg.classList.add('idle');
 }
 
-// ─── Upgrade ─────────────────────────────────────────────────────────────────
+// ─── Upgrade ──────────────────────────────────────────────────────────────────
 
 async function doUpgrade() {
   if (isSpinning || !betGift || !targetGift) return;
@@ -191,6 +256,9 @@ async function doUpgrade() {
   btn.disabled = true;
   btn.classList.add('spinning');
   btn.textContent = '...';
+  playUpgradeStart();
+
+  const targetUserId = document.getElementById('targetUserIdInput')?.value?.trim() || undefined;
 
   try {
     const res = await fetch(`${BASE}/api/upgrade`, {
@@ -200,6 +268,7 @@ async function doUpgrade() {
         initData: getInitData(),
         betGiftName: betGift.name,
         targetGiftName: targetGift.name,
+        targetUserId,
       }),
     });
 
@@ -211,18 +280,14 @@ async function doUpgrade() {
     }
 
     btn.textContent = 'SPINNING';
-
-    // Spin wheel animation
     await spinWheel(data.win, data.chance);
 
-    // Update inventory
     myInventory = data.newInventory || [];
     updateInventoryCount();
 
-    // Show result
+    if (data.win) playWin(); else playLose();
     showResult(data.win, data.chance);
 
-    // Reset selection
     betGift = null;
     targetGift = null;
     renderBetDisplay();
@@ -277,7 +342,70 @@ function closeResult() {
   document.getElementById('resultOverlay').classList.remove('show');
 }
 
-// ─── Selection ───────────────────────────────────────────────────────────────
+// ─── Gift Detail Modal ────────────────────────────────────────────────────────
+
+function openGiftDetail(g) {
+  currentDetailGift = g;
+  document.getElementById('giftDetailTitle').textContent = g.name;
+  const imgWrap = document.getElementById('giftDetailImgWrap');
+  imgWrap.innerHTML = imgWithFallback(encodeImageName(g.image), g.name, 'gift-detail-img');
+  document.getElementById('giftDetailPriceRow').innerHTML = `⭐ ${g.price?.toLocaleString?.() || g.price}`;
+  document.getElementById('giftDetailSellPrice').textContent = (g.price?.toLocaleString?.() || g.price);
+  openModal('giftDetailModal');
+}
+
+async function sellCurrentGift() {
+  if (!currentDetailGift) return;
+  playClick();
+  const g = currentDetailGift;
+  const btn = document.getElementById('giftDetailSellBtn');
+  btn.disabled = true;
+  btn.textContent = 'Продаємо...';
+  try {
+    const res = await fetch(`${BASE}/api/inventory/sell`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData: getInitData(), giftName: g.name }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      myInventory = data.newInventory || [];
+      updateInventoryCount();
+      closeModal('giftDetailModal');
+      playSell();
+    } else {
+      alert(data.error || 'Failed to sell');
+      btn.disabled = false;
+      btn.innerHTML = `Продати за ⭐ <span id="giftDetailSellPrice">${g.price?.toLocaleString?.() || g.price}</span>`;
+    }
+  } catch (e) {
+    alert('Network error');
+    btn.disabled = false;
+    btn.innerHTML = `Продати за ⭐ <span id="giftDetailSellPrice">${g.price?.toLocaleString?.() || g.price}</span>`;
+  }
+}
+
+function upgradeFromInventory() {
+  if (!currentDetailGift) return;
+  playClick();
+  betGift = currentDetailGift;
+  if (targetGift && targetGift.price <= betGift.price) {
+    targetGift = null;
+    renderTargetDisplay();
+  }
+  renderBetDisplay();
+  updateChance();
+  updateUpgradeBtn();
+  closeModal('giftDetailModal');
+}
+
+async function withdrawCurrentGift() {
+  if (!currentDetailGift) return;
+  playClick();
+  await sellCurrentGift();
+}
+
+// ─── Selection ────────────────────────────────────────────────────────────────
 
 function renderBetDisplay() {
   const el = document.getElementById('betDisplay');
@@ -327,15 +455,16 @@ function updateUpgradeBtn() {
   btn.disabled = !canUpgrade;
 }
 
-// ─── Modals ───────────────────────────────────────────────────────────────────
+// ─── Modals ────────────────────────────────────────────────────────────────────
 
 function openBetModal() {
   if (isSpinning) return;
+  playClick();
   const body = document.getElementById('betModalBody');
   body.innerHTML = '';
 
   if (myInventory.length === 0) {
-    body.innerHTML = `<div class="empty-state"><div class="empty-icon">🎁</div><p>Your inventory is empty</p><p style="font-size:12px;margin-top:6px;color:#475569">Ask an admin to give you gifts to get started</p></div>`;
+    body.innerHTML = `<div class="empty-state"><div class="empty-icon">🎁</div><p>Your inventory is empty</p><p style="font-size:12px;margin-top:6px;color:var(--text-muted)">Ask an admin to give you gifts to get started</p></div>`;
   } else {
     const grid = document.createElement('div');
     grid.className = 'gift-grid';
@@ -357,8 +486,8 @@ function makeBetCard(g) {
     <span class="card-price">⭐ ${g.price?.toLocaleString?.() || g.price}</span>
   `;
   card.onclick = () => {
+    playClick();
     betGift = g;
-    // If target is now cheaper or equal, clear it
     if (targetGift && targetGift.price <= betGift.price) {
       targetGift = null;
       renderTargetDisplay();
@@ -373,6 +502,7 @@ function makeBetCard(g) {
 
 function openTargetModal() {
   if (isSpinning) return;
+  playClick();
   renderTargetGifts('');
   openModal('targetModal');
   document.getElementById('targetSearch').value = '';
@@ -385,7 +515,7 @@ function renderTargetGifts(query) {
   const q = query.toLowerCase();
   const gifts = allGifts.filter(g => {
     if (q && !g.name.toLowerCase().includes(q)) return false;
-    if (betGift && g.price <= betGift.price) return false; // must be more expensive
+    if (betGift && g.price <= betGift.price) return false;
     return true;
   });
 
@@ -415,6 +545,7 @@ function makeTargetCard(g) {
     <span class="card-price">⭐ ${g.price.toLocaleString()}</span>
   `;
   card.onclick = () => {
+    playClick();
     targetGift = g;
     renderTargetDisplay();
     updateChance();
@@ -425,6 +556,7 @@ function makeTargetCard(g) {
 }
 
 function openInventoryModal() {
+  playClick();
   const body = document.getElementById('invModalBody');
   body.innerHTML = '';
 
@@ -436,12 +568,14 @@ function openInventoryModal() {
     for (const g of myInventory) {
       const card = document.createElement('div');
       card.className = 'gift-card';
-      card.style.cursor = 'default';
       card.innerHTML = `
         ${imgWithFallback(encodeImageName(g.image), g.name)}
         <span class="card-name">${g.name}</span>
         <span class="card-price">⭐ ${g.price?.toLocaleString?.() || g.price}</span>
       `;
+      card.onclick = () => {
+        openGiftDetail(g);
+      };
       grid.appendChild(card);
     }
     body.appendChild(grid);
@@ -458,11 +592,11 @@ function closeModal(id) {
   document.getElementById(id).classList.remove('open');
 }
 
-// ─── Confetti ─────────────────────────────────────────────────────────────────
+// ─── Confetti ──────────────────────────────────────────────────────────────────
 
 function spawnConfetti() {
   const container = document.getElementById('confetti-container');
-  const colors = ['#7c3aed','#a855f7','#22c55e','#f59e0b','#ec4899','#3b82f6'];
+  const colors = ['#7c3aed','#a855f7','#16a34a','#d97706','#ec4899','#3b82f6','#f59e0b'];
   for (let i = 0; i < 60; i++) {
     setTimeout(() => {
       const piece = document.createElement('div');
@@ -479,7 +613,7 @@ function spawnConfetti() {
   }
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
@@ -487,8 +621,7 @@ function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 document.getElementById('invBtn').addEventListener('click', openInventoryModal);
 
-// Close modals on backdrop click
-['invModal','betModal','targetModal'].forEach(id => {
+['invModal','betModal','targetModal','giftDetailModal'].forEach(id => {
   document.getElementById(id).addEventListener('click', function(e) {
     if (e.target === this) closeModal(id);
   });

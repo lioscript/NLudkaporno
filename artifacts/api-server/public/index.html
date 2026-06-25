@@ -41,7 +41,7 @@
             </filter>
           </defs>
           <!-- Dark background ring -->
-          <circle cx="150" cy="150" r="125" fill="none" stroke="#181828" stroke-width="28"/>
+          <circle cx="150" cy="150" r="125" fill="none" stroke="#dde3ec" stroke-width="28"/>
           <!-- Tick marks (drawn by JS) -->
           <g id="tickMarks"></g>
           <!-- Win zone arc (updated dynamically) -->
@@ -50,19 +50,19 @@
             stroke-dasharray="0 785.4" opacity="0"
             filter="url(#arcGlow)"/>
           <!-- Inner shadow -->
-          <circle cx="150" cy="150" r="109" fill="none" stroke="#07070f" stroke-width="10"/>
-          <!-- Inner dark circle -->
-          <circle cx="150" cy="150" r="103" fill="#0e0e1c"/>
-          <circle cx="150" cy="150" r="103" fill="none" stroke="#1d1d30" stroke-width="1.5"/>
+          <circle cx="150" cy="150" r="109" fill="none" stroke="#e8edf3" stroke-width="10"/>
+          <!-- Inner light circle -->
+          <circle cx="150" cy="150" r="103" fill="#f8fafc"/>
+          <circle cx="150" cy="150" r="103" fill="none" stroke="#dde3ec" stroke-width="1.5"/>
           <!-- Double chevron upgrade icon -->
           <polyline points="126,151 150,127 174,151" stroke="#f59e0b" stroke-width="5.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
           <polyline points="126,170 150,146 174,170" stroke="#f59e0b" stroke-width="5.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
           <!-- Needle: 0° = pointing DOWN = win zone center -->
           <g id="needle" style="transform-origin:150px 150px">
-            <line x1="150" y1="50" x2="150" y2="143" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" opacity="0.18"/>
+            <line x1="150" y1="50" x2="150" y2="143" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" opacity="0.25"/>
             <line x1="150" y1="157" x2="150" y2="255" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/>
             <polygon points="150,269 141,251 159,251" fill="#f59e0b"/>
-            <circle cx="150" cy="150" r="7.5" fill="#0e0e1c" stroke="#f59e0b" stroke-width="2.5"/>
+            <circle cx="150" cy="150" r="7.5" fill="#f8fafc" stroke="#f59e0b" stroke-width="2.5"/>
           </g>
         </svg>
       </div>
@@ -104,6 +104,11 @@
           </div>
           <div class="gift-price target-price" id="targetPrice"></div>
         </div>
+      </div>
+
+      <!-- Target user ID input -->
+      <div class="user-id-row">
+        <input type="text" id="targetUserIdInput" placeholder="🆔 Telegram ID іншого гравця (необов'язково)" inputmode="numeric" />
       </div>
     </main>
 
@@ -155,6 +160,31 @@
         </div>
         <div class="modal-body" id="targetModalBody">
           <div class="loading-spinner"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gift Detail Modal -->
+    <div class="modal" id="giftDetailModal">
+      <div class="modal-content gift-detail-modal-content">
+        <div class="modal-header">
+          <span class="modal-title" id="giftDetailTitle">Gift</span>
+          <button class="modal-close" onclick="closeModal('giftDetailModal')">✕</button>
+        </div>
+        <div class="gift-detail-body">
+          <div class="gift-detail-img-wrap" id="giftDetailImgWrap"></div>
+          <div class="gift-detail-price-row" id="giftDetailPriceRow"></div>
+          <div class="gift-detail-actions">
+            <button class="action-btn action-sell" id="giftDetailSellBtn" onclick="sellCurrentGift()">
+              Продати за ⭐ <span id="giftDetailSellPrice"></span>
+            </button>
+            <button class="action-btn action-upgrade-inv" onclick="upgradeFromInventory()">
+              Улучшити
+            </button>
+            <button class="action-btn action-withdraw" onclick="withdrawCurrentGift()">
+              Вивести
+            </button>
+          </div>
         </div>
       </div>
     </div>

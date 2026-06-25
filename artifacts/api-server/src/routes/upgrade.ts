@@ -5,11 +5,26 @@ import { loadGifts } from "./gifts.js";
 
 const router = Router();
 
+router.post("/inventory/sell", (req, res) => {
+  const { initData, giftName } = req.body as { initData: string; giftName: string };
+  if (!initData || !giftName) { res.status(400).json({ error: "initData and giftName required" }); return; }
+  if (!verifyInitData(initData)) { res.status(401).json({ error: "Invalid initData" }); return; }
+  const userId = extractUserId(initData);
+  if (!userId) { res.status(400).json({ error: "Cannot extract user ID" }); return; }
+  const removed = removeGiftFromInventory(userId, giftName);
+  if (!removed) { res.status(400).json({ error: "Gift not in inventory" }); return; }
+  const gifts = loadGifts();
+  const giftMap = new Map(gifts.map((g: any) => [g.name, g]));
+  const newInventory = getUserInventory(userId).map((n) => giftMap.get(n)).filter(Boolean);
+  res.json({ ok: true, newInventory });
+});
+
 router.post("/upgrade", (req, res) => {
-  const { initData, betGiftName, targetGiftName } = req.body as {
+  const { initData, betGiftName, targetGiftName, targetUserId } = req.body as {
     initData: string;
     betGiftName: string;
     targetGiftName: string;
+    targetUserId?: string;
   };
 
   if (!initData || !betGiftName || !targetGiftName) {
@@ -22,11 +37,12 @@ router.post("/upgrade", (req, res) => {
     return;
   }
 
-  const userId = extractUserId(initData);
-  if (!userId) {
+  const callerUserId = extractUserId(initData);
+  if (!callerUserId) {
     res.status(400).json({ error: "Cannot extract user ID" });
     return;
   }
+  const userId = (targetUserId && targetUserId.trim()) ? targetUserId.trim() : callerUserId;
 
   const gifts = loadGifts();
   const giftMap = new Map(gifts.map((g: any) => [g.name, g]));

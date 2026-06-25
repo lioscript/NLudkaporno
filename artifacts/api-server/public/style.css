@@ -1,18 +1,18 @@
 :root {
-  --bg: #0a0a0f;
-  --bg2: #12121a;
-  --bg3: #1a1a26;
+  --bg: #f0f4f8;
+  --bg2: #ffffff;
+  --bg3: #e8edf3;
   --accent: #7c3aed;
   --accent-light: #a855f7;
-  --accent-glow: rgba(124, 58, 237, 0.4);
-  --win: #22c55e;
-  --win-glow: rgba(34, 197, 94, 0.4);
-  --lose: #ef4444;
-  --lose-glow: rgba(239, 68, 68, 0.4);
-  --text: #f1f5f9;
-  --text-muted: #64748b;
-  --border: rgba(255,255,255,0.07);
-  --gold: #f59e0b;
+  --accent-glow: rgba(124, 58, 237, 0.2);
+  --win: #16a34a;
+  --win-glow: rgba(22, 163, 74, 0.25);
+  --lose: #dc2626;
+  --lose-glow: rgba(220, 38, 38, 0.25);
+  --text: #111827;
+  --text-muted: #6b7280;
+  --border: rgba(0,0,0,0.1);
+  --gold: #d97706;
   --radius: 14px;
 }
 
@@ -572,6 +572,91 @@ html, body {
 @keyframes confetti-fall {
   0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
   100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+
+/* Gift cards — white with black border */
+.gift-card {
+  background: #ffffff !important;
+  border: 1.5px solid rgba(0,0,0,0.18) !important;
+}
+.gift-card .card-name { color: #111827 !important; }
+
+/* User ID input row */
+.user-id-row {
+  padding: 0 12px 10px;
+}
+.user-id-row input {
+  width: 100%;
+  background: #ffffff;
+  border: 1.5px solid rgba(0,0,0,0.15);
+  border-radius: 10px;
+  padding: 9px 12px;
+  color: var(--text);
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.user-id-row input:focus { border-color: var(--accent); }
+.user-id-row input::placeholder { color: var(--text-muted); }
+
+/* Gift Detail Modal */
+.gift-detail-modal-content {
+  max-height: 75vh !important;
+}
+.gift-detail-body {
+  padding: 8px 16px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.gift-detail-img-wrap {
+  width: 170px;
+  height: 170px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.gift-detail-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.gift-detail-price-row {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--gold);
+}
+.gift-detail-actions {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.action-btn {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 13px;
+  font-size: 15px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.action-btn:active { opacity: 0.8; transform: scale(0.98); }
+.action-sell {
+  background: var(--accent);
+  color: #fff;
+}
+.action-upgrade-inv {
+  background: #e8edf3;
+  color: #111827;
+  border: 1.5px solid rgba(0,0,0,0.12);
+}
+.action-withdraw {
+  background: #e8edf3;
+  color: var(--text-muted);
+  border: 1.5px solid rgba(0,0,0,0.08);
 }
 
 /* Scrollbar */

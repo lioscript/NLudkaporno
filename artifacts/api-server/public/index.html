@@ -106,11 +106,8 @@
         </div>
       </div>
 
-      <!-- Target user ID (collapsed by default) -->
-      <div class="user-id-row">
-        <button class="for-other-toggle" id="forOtherToggle" onclick="toggleForOther()">Підкрутити іншому гравцю ▾</button>
-        <input type="text" id="targetUserIdInput" placeholder="Telegram ID гравця" inputmode="numeric" style="display:none" />
-      </div>
+      <!-- hidden, kept for backend compat -->
+      <input type="hidden" id="targetUserIdInput" />
     </main>
 
     <!-- Result overlay -->

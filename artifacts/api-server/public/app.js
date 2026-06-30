@@ -206,8 +206,8 @@ function drawWinArc(chance) {
 }
 
 function encodeImageName(imagePath) {
-  const filename = imagePath.split('/').pop();
-  return `images/${filename}`;
+  const filename = (imagePath || '').split('/').pop();
+  return `images/${encodeURIComponent(filename)}`;
 }
 
 async function spinWheel(win, chance) {

@@ -42,7 +42,8 @@ router.post("/upgrade", (req, res) => {
     res.status(400).json({ error: "Cannot extract user ID" });
     return;
   }
-  const userId = (targetUserId && targetUserId.trim()) ? targetUserId.trim() : callerUserId;
+  // targetUserId is reserved for admin use only — ignore it from the client to prevent IDOR
+  const userId = callerUserId;
 
   const gifts = loadGifts();
   const giftMap = new Map(gifts.map((g: any) => [g.name, g]));

@@ -98,6 +98,7 @@ export function startBot(): void {
       bot.sendMessage(chatId, `❌ Немає доступу.\nВаш ID: \`${msg.from?.id}\``, { parse_mode: "Markdown" });
       return;
     }
+    AWAITING.delete(chatId); // clear any pending state
     const { text, opts } = adminPanelMsg();
     bot.sendMessage(chatId, text, opts);
   });

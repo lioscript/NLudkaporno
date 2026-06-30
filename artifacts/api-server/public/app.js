@@ -218,15 +218,26 @@ async function spinWheel(win, chance) {
   const winHalf = (chance / 100) * 180;
   const spins = (6 + Math.floor(Math.random() * 4)) * 360;
 
-  let finalAngle;
+  // Target absolute angle on the circle (0° = win zone, 180° = lose zone)
+  let targetVisualAngle;
   if (win) {
-    finalAngle = (Math.random() * 2 - 1) * winHalf * 0.82;
+    targetVisualAngle = (Math.random() * 2 - 1) * winHalf * 0.82;
   } else {
     const loseHalf = Math.max((180 - winHalf) * 0.75, 10);
-    finalAngle = 180 + (Math.random() * 2 - 1) * loseHalf;
+    targetVisualAngle = 180 + (Math.random() * 2 - 1) * loseHalf;
   }
 
-  currentNeedleRotation += spins + finalAngle;
+  // Normalize to [0, 360)
+  targetVisualAngle = ((targetVisualAngle % 360) + 360) % 360;
+
+  // Current visual position of needle
+  const currentVisualAngle = ((currentNeedleRotation % 360) + 360) % 360;
+
+  // Delta needed to rotate FROM current TO target (always forward)
+  let delta = (targetVisualAngle - currentVisualAngle + 360) % 360;
+  if (delta < 1) delta += 360; // ensure at least some forward rotation
+
+  currentNeedleRotation += spins + delta;
   needle.style.transition = 'transform 4s cubic-bezier(0.12, 0, 0.05, 1)';
   needle.style.transform = `rotate(${currentNeedleRotation}deg)`;
 

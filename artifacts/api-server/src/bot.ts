@@ -11,7 +11,7 @@ const ADMIN_ID = process.env["ADMIN_TELEGRAM_ID"]?.replace(/\D/g, "") || undefin
 
 let bot: any = null;
 
-// State: chatId → 'user_id' (waiting for user to type a Telegram ID)
+// State: chatId → 'player_id' (waiting for admin to type a Telegram ID)
 const AWAITING: Map<string, string> = new Map();
 
 const PER_PAGE = 8;
@@ -25,23 +25,27 @@ function getGifts(): { name: string; price: number }[] {
   }
 }
 
-function adminPanelMsg() {
+function playerPanelMsg(targetId: string) {
   const mode = getLuckMode();
   const modeLabel =
     mode === "force_win" ? "🟢 Force WIN" :
     mode === "force_lose" ? "🔴 Force LOSE" : "⚪ Звичайний";
   return {
-    text: `🛡 *Адмін панель*\nПоточний режим удачі: ${modeLabel}`,
+    text: `👤 Гравець: \`${targetId}\`\n\nПоточний режим удачі: ${modeLabel}`,
     opts: {
       parse_mode: "Markdown",
       reply_markup: {
         inline_keyboard: [
-          [{ text: "🟢 Force WIN", callback_data: "a:win" }, { text: "🔴 Force LOSE", callback_data: "a:lose" }],
-          [{ text: "⚪ Скинути удачу", callback_data: "a:reset" }],
-          [{ text: "🎁 Видати подарок гравцю", callback_data: "a:give" }],
-        ]
-      }
-    }
+          [{ text: "🎁 Видати подарок", callback_data: `a:give:${targetId}` }],
+          [
+            { text: "🟢 Force WIN", callback_data: `a:win:${targetId}` },
+            { text: "🔴 Force LOSE", callback_data: `a:lose:${targetId}` },
+          ],
+          [{ text: "⚪ Скинути удачу", callback_data: `a:reset:${targetId}` }],
+          [{ text: "🔙 Змінити гравця", callback_data: "a:back" }],
+        ],
+      },
+    },
   };
 }
 
@@ -60,9 +64,18 @@ function giftsKeyboard(targetId: string, page: number) {
   nav.push({ text: `${page + 1} / ${totalPages}`, callback_data: "noop" });
   if (page < totalPages - 1) nav.push({ text: "Далі ▶", callback_data: `gp:${targetId}:${page + 1}` });
   rows.push(nav);
-  rows.push([{ text: "🔙 До панелі", callback_data: "a:panel" }]);
+  rows.push([{ text: "🔙 До гравця", callback_data: `a:panel:${targetId}` }]);
 
   return { inline_keyboard: rows };
+}
+
+function askForPlayerId(chatId: string) {
+  AWAITING.set(chatId, "player_id");
+  bot.sendMessage(chatId, "👤 Введіть Telegram ID гравця:", {
+    reply_markup: {
+      inline_keyboard: [[{ text: "❌ Скасувати", callback_data: "a:cancel" }]],
+    },
+  });
 }
 
 export function startBot(): void {
@@ -78,29 +91,37 @@ export function startBot(): void {
   bot.onText(/\/start/, (msg: any) => {
     const chatId = msg.chat.id;
     const miniAppUrl = process.env["MINI_APP_URL"] ?? "https://t.me";
-    bot.sendMessage(chatId, "🎁 Ласкаво просимо до NFT Gift Upgrader!\n\nНатисніть кнопку нижче щоб відкрити додаток.", {
-      reply_markup: {
-        inline_keyboard: [[{ text: "🎰 Відкрити апгрейдер", web_app: { url: miniAppUrl } }]]
+    bot.sendMessage(
+      chatId,
+      "🎁 Ласкаво просимо до NFT Gift Upgrader!\n\nНатисніть кнопку нижче щоб відкрити додаток.",
+      {
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: "🎰 Відкрити апгрейдер", web_app: { url: miniAppUrl } }],
+          ],
+        },
       }
-    });
+    );
   });
 
   // /myid
   bot.onText(/\/myid/, (msg: any) => {
-    bot.sendMessage(msg.chat.id, `🆔 Ваш Telegram ID: \`${msg.from?.id}\``, { parse_mode: "Markdown" });
+    bot.sendMessage(msg.chat.id, `🆔 Ваш Telegram ID: \`${msg.from?.id}\``, {
+      parse_mode: "Markdown",
+    });
   });
 
-  // /adm
+  // /adm — ask for player ID first
   bot.onText(/\/adm/, (msg: any) => {
     const chatId = String(msg.chat.id);
     const userId = String(msg.from?.id);
     if (!ADMIN_ID || userId !== ADMIN_ID) {
-      bot.sendMessage(chatId, `❌ Немає доступу.\nВаш ID: \`${msg.from?.id}\``, { parse_mode: "Markdown" });
+      bot.sendMessage(chatId, `❌ Немає доступу.\nВаш ID: \`${msg.from?.id}\``, {
+        parse_mode: "Markdown",
+      });
       return;
     }
-    AWAITING.delete(chatId); // clear any pending state
-    const { text, opts } = adminPanelMsg();
-    bot.sendMessage(chatId, text, opts);
+    askForPlayerId(chatId);
   });
 
   // Callback queries
@@ -115,35 +136,56 @@ export function startBot(): void {
     }
     bot.answerCallbackQuery(query.id);
 
-    // Admin panel actions: a:win / a:lose / a:reset / a:give / a:panel
-    if (data === "a:win") {
-      setLuckMode("force_win");
-      bot.sendMessage(chatId, "✅ Режим Force WIN активовано. Всі апгрейди виграють.");
-    } else if (data === "a:lose") {
-      setLuckMode("force_lose");
-      bot.sendMessage(chatId, "✅ Режим Force LOSE активовано. Всі апгрейди програють.");
-    } else if (data === "a:reset") {
-      setLuckMode("normal");
-      bot.sendMessage(chatId, "✅ Удача скинута до звичайного режиму.");
-    } else if (data === "a:panel") {
-      AWAITING.delete(chatId);
-      const { text, opts } = adminPanelMsg();
+    // Cancel or back → ask for player ID
+    if (data === "a:cancel" || data === "a:back") {
+      askForPlayerId(chatId);
+
+    // Show player panel: a:panel:{targetId}
+    } else if (data.startsWith("a:panel:")) {
+      const targetId = data.slice("a:panel:".length);
+      const { text, opts } = playerPanelMsg(targetId);
       bot.sendMessage(chatId, text, opts);
 
-    // Give gift: ask for user ID
-    } else if (data === "a:give") {
-      AWAITING.set(chatId, "user_id");
-      bot.sendMessage(chatId, "👤 Введіть Telegram ID гравця, якому видаємо подарок:", {
-        reply_markup: { inline_keyboard: [[{ text: "❌ Скасувати", callback_data: "a:panel" }]] }
+    // Force WIN: a:win:{targetId}
+    } else if (data.startsWith("a:win:")) {
+      const targetId = data.slice("a:win:".length);
+      setLuckMode("force_win");
+      const { text, opts } = playerPanelMsg(targetId);
+      bot.sendMessage(chatId, "✅ Режим Force WIN активовано.");
+      bot.sendMessage(chatId, text, opts);
+
+    // Force LOSE: a:lose:{targetId}
+    } else if (data.startsWith("a:lose:")) {
+      const targetId = data.slice("a:lose:".length);
+      setLuckMode("force_lose");
+      const { text, opts } = playerPanelMsg(targetId);
+      bot.sendMessage(chatId, "✅ Режим Force LOSE активовано.");
+      bot.sendMessage(chatId, text, opts);
+
+    // Reset luck: a:reset:{targetId}
+    } else if (data.startsWith("a:reset:")) {
+      const targetId = data.slice("a:reset:".length);
+      setLuckMode("normal");
+      const { text, opts } = playerPanelMsg(targetId);
+      bot.sendMessage(chatId, "✅ Удача скинута до звичайного режиму.");
+      bot.sendMessage(chatId, text, opts);
+
+    // Give gift → show paginated gift list: a:give:{targetId}
+    } else if (data.startsWith("a:give:")) {
+      const targetId = data.slice("a:give:".length);
+      bot.sendMessage(chatId, `🎁 Оберіть подарок для гравця \`${targetId}\`:`, {
+        parse_mode: "Markdown",
+        reply_markup: giftsKeyboard(targetId, 0),
       });
 
     // Gift page navigation: gp:{targetId}:{page}
     } else if (data.startsWith("gp:")) {
-      const [, targetId, pageStr] = data.split(":");
-      const page = parseInt(pageStr, 10);
-      bot.sendMessage(chatId, `🎁 Оберіть подарок для гравця \`${targetId}\` (стор. ${page + 1}):`, {
-        parse_mode: "Markdown",
-        reply_markup: giftsKeyboard(targetId, page),
+      const parts = data.split(":");
+      const targetId = parts[1];
+      const page = parseInt(parts[2], 10);
+      bot.editMessageReplyMarkup(giftsKeyboard(targetId, page), {
+        chat_id: chatId,
+        message_id: query.message.message_id,
       });
 
     // Give specific gift: g:{targetId}:{giftIndex}
@@ -158,34 +200,41 @@ export function startBot(): void {
         return;
       }
       addGiftToInventory(targetId, gift.name);
-      bot.sendMessage(chatId,
+      bot.sendMessage(
+        chatId,
         `✅ Подарок *${gift.name}* (⭐${gift.price}) видано гравцю \`${targetId}\`!`,
         { parse_mode: "Markdown" }
       );
+      const { text, opts } = playerPanelMsg(targetId);
+      bot.sendMessage(chatId, text, opts);
     }
   });
 
-  // Text messages — only used when waiting for user ID input
+  // Text messages — used only when waiting for player ID input
   bot.on("message", (msg: any) => {
     const chatId = String(msg.chat.id);
     const userId = String(msg.from?.id);
     if (!ADMIN_ID || userId !== ADMIN_ID) return;
     if (!msg.text || msg.text.startsWith("/")) return;
-    if (AWAITING.get(chatId) !== "user_id") return;
+    if (AWAITING.get(chatId) !== "player_id") return;
 
     const targetId = msg.text.trim().replace(/\D/g, "");
     if (!targetId) {
-      bot.sendMessage(chatId, "❌ Невірний ID. Введіть тільки цифри (наприклад: 123456789):", {
-        reply_markup: { inline_keyboard: [[{ text: "❌ Скасувати", callback_data: "a:panel" }]] }
-      });
+      bot.sendMessage(
+        chatId,
+        "❌ Невірний ID. Введіть тільки цифри (наприклад: 123456789):",
+        {
+          reply_markup: {
+            inline_keyboard: [[{ text: "❌ Скасувати", callback_data: "a:cancel" }]],
+          },
+        }
+      );
       return;
     }
 
     AWAITING.delete(chatId);
-    bot.sendMessage(chatId, `👤 Гравець \`${targetId}\`\n\n🎁 Оберіть подарок:`, {
-      parse_mode: "Markdown",
-      reply_markup: giftsKeyboard(targetId, 0),
-    });
+    const { text, opts } = playerPanelMsg(targetId);
+    bot.sendMessage(chatId, text, opts);
   });
 
   logger.info("Telegram bot started");

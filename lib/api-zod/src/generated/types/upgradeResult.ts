@@ -5,7 +5,10 @@
  * NFT Gift Upgrader API
  * OpenAPI spec version: 0.1.0
  */
+import type { Gift } from './gift';
 
-export interface HealthStatus {
-  status: string;
+export interface UpgradeResult {
+  win: boolean;
+  chance: number;
+  newInventory: Gift[];
 }

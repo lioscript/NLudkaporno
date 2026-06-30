@@ -1,22 +1,24 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: NFT Gift Upgrader API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: gifts
+    description: Gift catalog and inventory
+  - name: upgrade
+    description: Upgrade operations
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +26,115 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /gifts:
+    get:
+      operationId: listGifts
+      tags: [gifts]
+      summary: List all available gifts sorted by price
+      responses:
+        "200":
+          description: List of gifts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Gift"
+
+  /inventory:
+    get:
+      operationId: getInventory
+      tags: [gifts]
+      summary: Get the current user's inventory (requires Telegram initData)
+      parameters:
+        - name: initData
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User inventory
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InventoryResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /inventory/sell:
+    post:
+      operationId: sellGift
+      tags: [gifts]
+      summary: Remove a gift from inventory (sell it)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SellGiftInput"
+      responses:
+        "200":
+          description: Updated inventory after sell
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SellResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /upgrade:
+    post:
+      operationId: upgradeGift
+      tags: [upgrade]
+      summary: Attempt to upgrade a gift — bet a cheaper one for a chance to win a more expensive one
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpgradeInput"
+      responses:
+        "200":
+          description: Upgrade result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpgradeResult"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +145,75 @@ components:
       required:
         - status
 
+    Gift:
+      type: object
+      required: [name, price]
+      properties:
+        name:
+          type: string
+        price:
+          type: number
+        image:
+          type: ["string", "null"]
+
+    InventoryResponse:
+      type: object
+      required: [inventory]
+      properties:
+        inventory:
+          type: array
+          items:
+            $ref: "#/components/schemas/Gift"
+
+    SellGiftInput:
+      type: object
+      required: [initData, giftName]
+      properties:
+        initData:
+          type: string
+        giftName:
+          type: string
+
+    SellResponse:
+      type: object
+      required: [ok, newInventory]
+      properties:
+        ok:
+          type: boolean
+        newInventory:
+          type: array
+          items:
+            $ref: "#/components/schemas/Gift"
+
+    UpgradeInput:
+      type: object
+      required: [initData, betGiftName, targetGiftName]
+      properties:
+        initData:
+          type: string
+        betGiftName:
+          type: string
+        targetGiftName:
+          type: string
+        targetUserId:
+          type: ["string", "null"]
+
+    UpgradeResult:
+      type: object
+      required: [win, chance, newInventory]
+      properties:
+        win:
+          type: boolean
+        chance:
+          type: number
+        newInventory:
+          type: array
+          items:
+            $ref: "#/components/schemas/Gift"
+
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string

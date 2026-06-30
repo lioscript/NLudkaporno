@@ -605,6 +605,12 @@ function closeModal(id) {
   document.getElementById(id).classList.remove('open');
 }
 
+function openAddGiftModal() {
+  playClick();
+  closeModal('invModal');
+  openModal('addGiftModal');
+}
+
 // ─── Confetti ──────────────────────────────────────────────────────────────────
 
 function spawnConfetti() {
@@ -643,7 +649,7 @@ function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 document.getElementById('invBtn').addEventListener('click', openInventoryModal);
 
-['invModal','betModal','targetModal','giftDetailModal'].forEach(id => {
+['invModal','betModal','targetModal','giftDetailModal','addGiftModal'].forEach(id => {
   document.getElementById(id).addEventListener('click', function(e) {
     if (e.target === this) closeModal(id);
   });

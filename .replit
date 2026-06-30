@@ -18,3 +18,8 @@ expertMode = true
 [postMerge]
 path = "scripts/post-merge.sh"
 timeoutMs = 20000
+
+[userenv]
+
+[userenv.shared]
+MINI_APP_URL = "https://b56c9c89-08f0-47ef-a8cf-4e286fec17eb-00-qvwob14t7t49.riker.replit.dev"

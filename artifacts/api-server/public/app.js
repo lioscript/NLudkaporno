@@ -451,7 +451,7 @@ function renderTargetDisplay() {
 function updateChance() {
   const el = document.getElementById('chanceValue');
   if (betGift && targetGift && betGift.price < targetGift.price) {
-    const c = Math.min((betGift.price / targetGift.price) * 82, 82);
+    const c = Math.min((betGift.price / targetGift.price) * 100, 82);
     el.textContent = c.toFixed(1) + '%';
     drawWinArc(c);
   } else {
@@ -527,6 +527,8 @@ function renderTargetGifts(query) {
   const gifts = allGifts.filter(g => {
     if (q && !g.name.toLowerCase().includes(q)) return false;
     if (betGift && g.price <= betGift.price) return false;
+    // hide targets that would give >82% chance
+    if (betGift && (betGift.price / g.price) * 100 > 82) return false;
     return true;
   });
 

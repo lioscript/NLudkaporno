@@ -71,7 +71,7 @@ router.post("/upgrade", (req, res) => {
   }
 
   // Calculate win chance (capped at 82%)
-  const chance = Math.min((betGift.price / targetGift.price) * 82, 82);
+  const chance = Math.min((betGift.price / targetGift.price) * 100, 82);
 
   // Determine outcome
   const luckMode = getLuckMode();

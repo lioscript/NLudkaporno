@@ -573,27 +573,29 @@ function openInventoryModal() {
   const body = document.getElementById('invModalBody');
   body.innerHTML = '';
 
-  if (myInventory.length === 0) {
-    body.innerHTML = `<div class="empty-state"><div class="empty-icon">🎁</div><p>No gifts in inventory</p></div>`;
-  } else {
-    const grid = document.createElement('div');
-    grid.className = 'gift-grid';
-    for (const g of myInventory) {
-      const card = document.createElement('div');
-      card.className = 'gift-card';
-      card.innerHTML = `
-        ${imgWithFallback(encodeImageName(g.image), g.name)}
-        <span class="card-name">${g.name}</span>
-        <span class="card-price">⭐ ${g.price?.toLocaleString?.() || g.price}</span>
-      `;
-      card.onclick = () => {
-        openGiftDetail(g);
-      };
-      grid.appendChild(card);
-    }
-    body.appendChild(grid);
+  const grid = document.createElement('div');
+  grid.className = 'gift-grid';
+
+  for (const g of myInventory) {
+    const card = document.createElement('div');
+    card.className = 'gift-card';
+    card.innerHTML = `
+      ${imgWithFallback(encodeImageName(g.image), g.name)}
+      <span class="card-name">${g.name}</span>
+      <span class="card-price">⭐ ${g.price?.toLocaleString?.() || g.price}</span>
+    `;
+    card.onclick = () => { openGiftDetail(g); };
+    grid.appendChild(card);
   }
 
+  // Always append the "+" add-card at the end
+  const addCard = document.createElement('div');
+  addCard.className = 'inv-add-card';
+  addCard.innerHTML = `<div class="plus-icon">＋</div><div class="placeholder-text">Пополнить</div>`;
+  addCard.onclick = () => openAddGiftModal();
+  grid.appendChild(addCard);
+
+  body.appendChild(grid);
   openModal('invModal');
 }
 

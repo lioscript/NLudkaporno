@@ -124,11 +124,8 @@
     <div class="modal" id="invModal">
       <div class="modal-content">
         <div class="modal-header">
-          <span class="modal-title">🎁 Inventory</span>
-          <div class="modal-header-actions">
-            <button class="add-gift-btn" onclick="openAddGiftModal()">+</button>
-            <button class="modal-close" onclick="closeModal('invModal')">✕</button>
-          </div>
+          <span class="modal-title">🎁 Инвентарь</span>
+          <button class="modal-close" onclick="closeModal('invModal')">✕</button>
         </div>
         <div class="modal-body" id="invModalBody">
           <div class="loading-spinner"></div>
@@ -139,39 +136,28 @@
     <!-- Add Gift Modal -->
     <div class="modal" id="addGiftModal">
       <div class="modal-content add-gift-modal-content">
-        <div class="modal-header">
-          <span class="modal-title">Додати подарок</span>
-          <button class="modal-close" onclick="closeModal('addGiftModal')">✕</button>
+        <div class="add-gift-header">
+          <button class="add-gift-close" onclick="closeModal('addGiftModal')">✕</button>
         </div>
         <div class="add-gift-body">
-          <div class="add-gift-warning">
-            <div class="add-gift-warning-title">Не даруйте подарунки з Telegram маркету!</div>
-            <div class="add-gift-warning-sub">Надсилайте подарунки лише напряму зі свого акаунту.</div>
+          <div class="add-gift-avatar-row">
+            <img src="shark.png" class="add-gift-avatar" alt="upgraderbank" />
+            <div class="add-gift-avatar-info">
+              <div class="add-gift-avatar-label">Перейдите в профиль</div>
+              <a class="add-gift-avatar-link" href="https://t.me/upgraderbank" target="_blank">@upgraderbank</a>
+            </div>
           </div>
           <div class="add-gift-steps">
             <div class="add-gift-step">
-              <div class="add-gift-step-icon step-bot">⊞</div>
-              <div class="add-gift-step-text">
-                <div class="add-gift-step-title">Перейдіть в бота</div>
-                <div class="add-gift-step-sub">Юзернейм бота @upgraderbank</div>
-              </div>
+              <span class="add-gift-step-emoji">😎</span>
+              <span class="add-gift-step-title">Отправьте любой подарок</span>
             </div>
             <div class="add-gift-step">
-              <div class="add-gift-step-icon step-send">✉</div>
-              <div class="add-gift-step-text">
-                <div class="add-gift-step-title">Надішліть йому подарунок</div>
-                <div class="add-gift-step-sub">Модель, фон і символ не враховуються!</div>
-              </div>
-            </div>
-            <div class="add-gift-step">
-              <div class="add-gift-step-icon step-robot">🤖</div>
-              <div class="add-gift-step-text">
-                <div class="add-gift-step-title">Подарунок додасться в профіль</div>
-                <div class="add-gift-step-sub">Протягом кількох хвилин</div>
-              </div>
+              <span class="add-gift-step-emoji">😊</span>
+              <span class="add-gift-step-title">Подарок отобразится в вашем инвентаре</span>
             </div>
           </div>
-          <a class="add-gift-go-btn" href="https://t.me/upgraderbank" target="_blank" onclick="closeModal('addGiftModal')">Перейти</a>
+          <a class="add-gift-go-btn" href="https://t.me/upgraderbank" target="_blank" onclick="closeModal('addGiftModal')">Отправить подарок</a>
         </div>
       </div>
     </div>

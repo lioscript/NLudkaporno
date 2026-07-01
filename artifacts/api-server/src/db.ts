@@ -21,6 +21,16 @@ db.exec(`
     value TEXT NOT NULL
   );
 
+  CREATE TABLE IF NOT EXISTS upgrade_history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    telegram_id TEXT NOT NULL,
+    winner_name TEXT NOT NULL DEFAULT 'Игрок',
+    bet_gift TEXT NOT NULL,
+    target_gift TEXT NOT NULL,
+    target_price INTEGER NOT NULL,
+    won_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
   INSERT OR IGNORE INTO admin_settings (key, value) VALUES ('luck_mode', 'normal');
 `);
 
@@ -50,6 +60,24 @@ export function getLuckMode(): string {
 
 export function setLuckMode(mode: "normal" | "force_win" | "force_lose"): void {
   db.prepare("INSERT OR REPLACE INTO admin_settings (key, value) VALUES ('luck_mode', ?)").run(mode);
+}
+
+export function recordWin(
+  telegramId: string,
+  winnerName: string,
+  betGift: string,
+  targetGift: string,
+  targetPrice: number
+): void {
+  db.prepare(
+    "INSERT INTO upgrade_history (telegram_id, winner_name, bet_gift, target_gift, target_price) VALUES (?, ?, ?, ?, ?)"
+  ).run(telegramId, winnerName, betGift, targetGift, targetPrice);
+}
+
+export function getRecentWins(limit = 20): { winner_name: string; bet_gift: string; target_gift: string; target_price: number; won_at: string }[] {
+  return db
+    .prepare("SELECT winner_name, bet_gift, target_gift, target_price, won_at FROM upgrade_history ORDER BY id DESC LIMIT ?")
+    .all(limit) as any[];
 }
 
 export default db;

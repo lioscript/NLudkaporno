@@ -36,6 +36,18 @@ export function verifyInitData(initData: string): boolean {
   }
 }
 
+export function extractUserName(initData: string): string {
+  try {
+    const params = new URLSearchParams(initData);
+    const userStr = params.get("user");
+    if (!userStr) return "Игрок";
+    const user = JSON.parse(userStr);
+    return user.first_name || user.username || "Игрок";
+  } catch {
+    return "Игрок";
+  }
+}
+
 export function extractUserId(initData: string): string | null {
   try {
     const params = new URLSearchParams(initData);

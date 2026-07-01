@@ -101,4 +101,8 @@ router.post("/upgrade", (req, res) => {
   res.json({ win, chance: Math.round(chance * 100) / 100, newInventory });
 });
 
+router.get("/live-wins", (_req, res) => {
+  res.json(getRecentWins(30));
+});
+
 export default router;

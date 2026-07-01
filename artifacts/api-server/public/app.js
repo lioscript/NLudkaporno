@@ -111,60 +111,9 @@ async function init() {
   setupUserInfo();
   await Promise.all([loadGifts(), loadInventory()]);
   initSpinner();
-  startFakeTicker();
   // Unlock audio on first interaction
   document.addEventListener('touchstart', () => getAudio(), { once: true });
   document.addEventListener('click', () => getAudio(), { once: true });
-}
-
-// ─── Fake wins ticker ─────────────────────────────────────────────────────────
-const TICKER_EMOJIS = ['🏆','🎯','🔥','⚡','💎','🎰','✨'];
-
-function buildTickerItems() {
-  // Pick 12 random win pairs: betGift → targetGift (target must be more expensive)
-  const eligibleTargets = allGifts.filter(g => g.price >= 500);
-  if (eligibleTargets.length < 2) return [];
-  const items = [];
-  for (let i = 0; i < 12; i++) {
-    const targetIdx = Math.floor(Math.random() * eligibleTargets.length);
-    const target = eligibleTargets[targetIdx];
-    const cheaper = allGifts.filter(g => g.price < target.price);
-    if (!cheaper.length) continue;
-    const bet = cheaper[Math.floor(Math.random() * cheaper.length)];
-    const emoji = TICKER_EMOJIS[i % TICKER_EMOJIS.length];
-    items.push({ emoji, bet: bet.name, target: target.name, price: target.price });
-  }
-  return items;
-}
-
-function renderTicker(items) {
-  const track = document.getElementById('winsTickerTrack');
-  const ticker = document.getElementById('winsTicker');
-  if (!items.length) return;
-  ticker.style.display = 'flex';
-
-  // Build HTML twice for seamless loop
-  const html = items.map(it =>
-    `<span class="wins-ticker-item">` +
-    `<span>${it.emoji}</span>` +
-    `<span class="t-gift">${it.bet}</span>` +
-    `<span style="color:rgba(245,158,11,0.5)">→</span>` +
-    `<span class="t-gift">${it.target}</span>` +
-    `<span class="t-price">⭐${it.price.toLocaleString()}</span>` +
-    `<span class="t-dot">●</span>` +
-    `</span>`
-  ).join('');
-  track.innerHTML = html + html; // doubled for seamless scroll
-
-  // Speed proportional to content length
-  const totalItems = items.length * 2;
-  track.style.animationDuration = (totalItems * 4) + 's';
-}
-
-function startFakeTicker() {
-  if (allGifts.length < 2) return;
-  const items = buildTickerItems();
-  renderTicker(items);
 }
 
 function getInitData() {

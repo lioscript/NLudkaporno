@@ -81,8 +81,9 @@ router.post("/upgrade", (req, res) => {
   } else if (luckMode === "force_lose") {
     win = false;
   } else {
+    const HOUSE_EDGE = 0.6; // actual win rate = displayed% × 0.6
     const roll = Math.random() * 100;
-    win = roll < chance;
+    win = roll < chance * HOUSE_EDGE;
   }
 
   // Remove bet gift

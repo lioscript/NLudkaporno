@@ -81,7 +81,7 @@ router.post("/upgrade", (req, res) => {
   } else if (luckMode === "force_lose") {
     win = false;
   } else {
-    const HOUSE_EDGE = 0.6; // actual win rate = displayed% × 0.6
+    const HOUSE_EDGE = 0.854; // 82% displayed → ~70% real
     const roll = Math.random() * 100;
     win = roll < chance * HOUSE_EDGE;
   }

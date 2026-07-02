@@ -22,4 +22,4 @@ timeoutMs = 20000
 [userenv]
 
 [userenv.shared]
-MINI_APP_URL = "https://b56c9c89-08f0-47ef-a8cf-4e286fec17eb-00-qvwob14t7t49.riker.replit.dev"
+MINI_APP_URL = "https://98d45e27-bc89-4a35-b1ab-38b7579eeed5-00-338ja2m8x4bdb.riker.replit.dev/api"

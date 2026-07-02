@@ -107,12 +107,7 @@ function playSell() {
 
 // ─── Splash helpers ───────────────────────────────────────────────────────────
 
-function setSplashProgress(pct, status) {
-  const fill = document.getElementById('splashBarFill');
-  const label = document.getElementById('splashStatus');
-  if (fill) fill.style.width = Math.min(100, pct) + '%';
-  if (label && status) label.textContent = status;
-}
+function setSplashProgress(_pct, _status) {}
 
 function hideSplash() {
   const splash = document.getElementById('splashScreen');

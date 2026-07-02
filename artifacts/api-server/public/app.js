@@ -107,16 +107,6 @@ function playSell() {
 
 // ─── Splash helpers ───────────────────────────────────────────────────────────
 
-const SPLASH_COLORS = [
-  '#e53935','#8e24aa','#43a047','#fb8c00','#1e88e5',
-  '#00acc1','#6d4c41','#f06292','#7cb342','#fdd835',
-  '#5e35b1','#00897b','#e91e63','#039be5','#c0ca33',
-];
-
-function getSplashColor(index) {
-  return SPLASH_COLORS[index % SPLASH_COLORS.length];
-}
-
 function hideSplash() {
   const splash = document.getElementById('splashScreen');
   const app = document.getElementById('app');
@@ -128,51 +118,12 @@ function hideSplash() {
 
 async function preloadGiftImages(gifts) {
   if (!gifts || gifts.length === 0) return;
-
-  const grid = document.getElementById('splashGrid');
-  const bar = document.getElementById('splashBarFill');
-  const label = document.getElementById('splashLabel');
-  const CELLS = 9;
-  const step = Math.max(1, Math.floor(gifts.length / CELLS));
-  const shown = [];
-
-  // Pre-create 9 cells
-  for (let i = 0; i < CELLS; i++) {
-    const cell = document.createElement('div');
-    cell.className = 'splash-cell';
-    cell.style.background = getSplashColor(i);
-    grid.appendChild(cell);
-    shown.push(cell);
-  }
-
-  let loaded = 0;
-  const total = gifts.length;
-
-  await Promise.all(gifts.map((g, idx) => new Promise(resolve => {
+  await Promise.all(gifts.map(g => new Promise(resolve => {
     const filename = (g.image || '').split('/').pop();
-    const imgEl = new Image();
-    imgEl.onload = imgEl.onerror = () => {
-      loaded++;
-      const pct = Math.round((loaded / total) * 100);
-      if (bar) bar.style.width = pct + '%';
-      if (label) label.textContent = `LOADING ${pct}%`;
-
-      // Reveal a cell every ~step images
-      const cellIdx = Math.floor((loaded - 1) / step);
-      if (cellIdx < CELLS) {
-        const cell = shown[cellIdx];
-        const img = document.createElement('img');
-        img.src = imgEl.src;
-        cell.appendChild(img);
-        requestAnimationFrame(() => cell.classList.add('loaded'));
-      }
-      resolve();
-    };
-    imgEl.src = `images/${encodeURIComponent(filename)}`;
+    const img = new Image();
+    img.onload = img.onerror = resolve;
+    img.src = `images/${encodeURIComponent(filename)}`;
   })));
-
-  // Make sure all cells are visible at 100%
-  shown.forEach(c => c.classList.add('loaded'));
 }
 
 // ─── Init ────────────────────────────────────────────────────────────────────

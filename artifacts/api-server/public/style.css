@@ -6,10 +6,8 @@
   z-index: 9999;
   transition: opacity 0.4s ease;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 20px;
 }
 
 #splashScreen.hide {
@@ -17,70 +15,10 @@
   pointer-events: none;
 }
 
-#splashGrid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  width: 100%;
-  max-width: 320px;
-  margin-bottom: 32px;
-}
-
-.splash-cell {
-  aspect-ratio: 1;
-  border-radius: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  opacity: 0;
-  transform: scale(0.7);
-  transition: opacity 0.3s ease, transform 0.3s ease;
-}
-
-.splash-cell.loaded {
-  opacity: 1;
-  transform: scale(1);
-}
-
-.splash-cell img {
-  width: 75%;
-  height: 75%;
-  object-fit: contain;
-}
-
-#splashBottom {
-  width: 100%;
-  max-width: 320px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-}
-
-#splashBarWrap {
-  width: 100%;
-  height: 5px;
-  background: rgba(255,255,255,0.12);
-  border-radius: 5px;
-  overflow: hidden;
-}
-
-#splashBarFill {
-  height: 100%;
-  width: 0%;
-  background: #fff;
-  border-radius: 5px;
-  transition: width 0.2s ease;
-}
-
-#splashLabel {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-  color: rgba(255,255,255,0.55);
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
+#splashVideo {
+  width: min(80vw, 340px);
+  height: auto;
+  border-radius: 20px;
 }
 
 :root {

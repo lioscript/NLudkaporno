@@ -105,12 +105,53 @@ function playSell() {
   playTone(1000, 0.1, 'sine', 0.1, 0.07);
 }
 
+// ─── Splash helpers ───────────────────────────────────────────────────────────
+
+function setSplashProgress(pct, status) {
+  const fill = document.getElementById('splashBarFill');
+  const label = document.getElementById('splashStatus');
+  if (fill) fill.style.width = Math.min(100, pct) + '%';
+  if (label && status) label.textContent = status;
+}
+
+function hideSplash() {
+  const splash = document.getElementById('splashScreen');
+  const app = document.getElementById('app');
+  if (!splash) return;
+  splash.classList.add('hide');
+  if (app) app.style.display = '';
+  setTimeout(() => splash.remove(), 450);
+}
+
+async function preloadGiftImages(gifts) {
+  if (!gifts || gifts.length === 0) return;
+  let loaded = 0;
+  const total = gifts.length;
+  await Promise.all(gifts.map(g => new Promise(resolve => {
+    const img = new Image();
+    img.onload = img.onerror = () => {
+      loaded++;
+      setSplashProgress(20 + Math.round((loaded / total) * 75), `Loading ${loaded}/${total}...`);
+      resolve();
+    };
+    const filename = (g.image || '').split('/').pop();
+    img.src = `images/${encodeURIComponent(filename)}`;
+  })));
+}
+
 // ─── Init ────────────────────────────────────────────────────────────────────
 
 async function init() {
+  setSplashProgress(5, 'Starting...');
   setupUserInfo();
+  setSplashProgress(10, 'Loading gifts...');
   await Promise.all([loadGifts(), loadInventory()]);
+  setSplashProgress(20, 'Loading images...');
+  await preloadGiftImages(allGifts);
+  setSplashProgress(100, 'Ready!');
   initSpinner();
+  // small delay so user sees 100%
+  setTimeout(hideSplash, 300);
   // Unlock audio on first interaction
   document.addEventListener('touchstart', () => getAudio(), { once: true });
   document.addEventListener('click', () => getAudio(), { once: true });

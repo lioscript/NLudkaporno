@@ -107,7 +107,15 @@ function playSell() {
 
 // ─── Splash helpers ───────────────────────────────────────────────────────────
 
-function setSplashProgress(_pct, _status) {}
+const SPLASH_COLORS = [
+  '#e53935','#8e24aa','#43a047','#fb8c00','#1e88e5',
+  '#00acc1','#6d4c41','#f06292','#7cb342','#fdd835',
+  '#5e35b1','#00897b','#e91e63','#039be5','#c0ca33',
+];
+
+function getSplashColor(index) {
+  return SPLASH_COLORS[index % SPLASH_COLORS.length];
+}
 
 function hideSplash() {
   const splash = document.getElementById('splashScreen');
@@ -120,34 +128,62 @@ function hideSplash() {
 
 async function preloadGiftImages(gifts) {
   if (!gifts || gifts.length === 0) return;
+
+  const grid = document.getElementById('splashGrid');
+  const bar = document.getElementById('splashBarFill');
+  const label = document.getElementById('splashLabel');
+  const CELLS = 9;
+  const step = Math.max(1, Math.floor(gifts.length / CELLS));
+  const shown = [];
+
+  // Pre-create 9 cells
+  for (let i = 0; i < CELLS; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'splash-cell';
+    cell.style.background = getSplashColor(i);
+    grid.appendChild(cell);
+    shown.push(cell);
+  }
+
   let loaded = 0;
   const total = gifts.length;
-  await Promise.all(gifts.map(g => new Promise(resolve => {
-    const img = new Image();
-    img.onload = img.onerror = () => {
+
+  await Promise.all(gifts.map((g, idx) => new Promise(resolve => {
+    const filename = (g.image || '').split('/').pop();
+    const imgEl = new Image();
+    imgEl.onload = imgEl.onerror = () => {
       loaded++;
-      setSplashProgress(20 + Math.round((loaded / total) * 75), `Loading ${loaded}/${total}...`);
+      const pct = Math.round((loaded / total) * 100);
+      if (bar) bar.style.width = pct + '%';
+      if (label) label.textContent = `LOADING ${pct}%`;
+
+      // Reveal a cell every ~step images
+      const cellIdx = Math.floor((loaded - 1) / step);
+      if (cellIdx < CELLS) {
+        const cell = shown[cellIdx];
+        const img = document.createElement('img');
+        img.src = imgEl.src;
+        cell.appendChild(img);
+        requestAnimationFrame(() => cell.classList.add('loaded'));
+      }
       resolve();
     };
-    const filename = (g.image || '').split('/').pop();
-    img.src = `images/${encodeURIComponent(filename)}`;
+    imgEl.src = `images/${encodeURIComponent(filename)}`;
   })));
+
+  // Make sure all cells are visible at 100%
+  shown.forEach(c => c.classList.add('loaded'));
 }
 
 // ─── Init ────────────────────────────────────────────────────────────────────
 
 async function init() {
-  setSplashProgress(5, 'Starting...');
   setupUserInfo();
-  setSplashProgress(10, 'Loading gifts...');
   await Promise.all([loadGifts(), loadInventory()]);
-  setSplashProgress(20, 'Loading images...');
   await preloadGiftImages(allGifts);
-  setSplashProgress(100, 'Ready!');
   initSpinner();
-  // small delay so user sees 100%
-  setTimeout(hideSplash, 300);
-  // Unlock audio on first interaction
+  // minimum 1.5s so splash is visible
+  setTimeout(hideSplash, 1500);
   document.addEventListener('touchstart', () => getAudio(), { once: true });
   document.addEventListener('click', () => getAudio(), { once: true });
 }

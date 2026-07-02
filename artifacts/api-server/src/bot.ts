@@ -3,6 +3,8 @@ import { addGiftToInventory, getLuckMode, setLuckMode } from "./db.js";
 import { logger } from "./lib/logger.js";
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import { updatePrices } from "./priceUpdater.js";
+import { clearGiftsCache } from "./routes/gifts.js";
 
 const require = createRequire(import.meta.url);
 
@@ -121,6 +123,39 @@ export function startBot(): void {
       return;
     }
     askForPlayerId(chatId);
+  });
+
+  // /prices — manually trigger price update
+  bot.onText(/\/prices/, async (msg: any) => {
+    const chatId = String(msg.chat.id);
+    const userId = String(msg.from?.id);
+    if (!ADMIN_ID || userId !== ADMIN_ID) {
+      bot.sendMessage(chatId, `❌ Нет доступа.`);
+      return;
+    }
+    const wait = await bot.sendMessage(chatId, "⏳ Обновляю цены по курсу TON/USD...");
+    try {
+      clearGiftsCache();
+      const { updated, oldRate, newRate } = await updatePrices();
+      clearGiftsCache();
+      const pct = ((newRate / oldRate - 1) * 100).toFixed(2);
+      const sign = parseFloat(pct) >= 0 ? "+" : "";
+      bot.editMessageText(
+        `✅ *Цены обновлены*\n\n` +
+        `💹 TON/USD: $${oldRate.toFixed(4)} → $${newRate.toFixed(4)} (${sign}${pct}%)\n` +
+        `🎁 Изменено: ${updated} из ${getGifts().length} подарков`,
+        {
+          chat_id: chatId,
+          message_id: wait.message_id,
+          parse_mode: "Markdown",
+        }
+      );
+    } catch (err: any) {
+      bot.editMessageText(
+        `❌ Ошибка обновления цен:\n\`${err.message}\``,
+        { chat_id: chatId, message_id: wait.message_id, parse_mode: "Markdown" }
+      );
+    }
   });
 
   // Callback queries

@@ -1,0 +1,1 @@
+- [Price updater & images](price-updater-images.md) — Fragment tonRate for TON/USD; Getgems/Fragment gift APIs blocked server-side; all 107 gift images processed to RGBA

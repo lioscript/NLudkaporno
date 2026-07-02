@@ -1,6 +1,7 @@
 import app from "./app.js";
 import { logger } from "./lib/logger.js";
 import { startBot } from "./bot.js";
+import { updatePrices, scheduleDaily } from "./priceUpdater.js";
 
 const rawPort = process.env["PORT"];
 
@@ -24,4 +25,17 @@ app.listen(port, (err) => {
 
   logger.info({ port }, "Server listening");
   startBot();
+
+  updatePrices()
+    .then(({ updated, oldRate, newRate }) =>
+      logger.info({ updated, oldRate, newRate }, "Startup price sync done")
+    )
+    .catch((err) => logger.warn({ err }, "Startup price sync failed — will retry next day"));
+
+  scheduleDaily(async () => {
+    const { clearGiftsCache } = await import("./routes/gifts.js");
+    clearGiftsCache();
+    await updatePrices();
+    clearGiftsCache();
+  });
 });

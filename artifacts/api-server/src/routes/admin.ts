@@ -1,5 +1,7 @@
 import { Router } from "express";
 import { addGiftToInventory, getLuckMode } from "../db.js";
+import { updatePrices } from "../priceUpdater.js";
+import { clearGiftsCache } from "./gifts.js";
 
 const router = Router();
 
@@ -28,6 +30,18 @@ router.post("/admin/give", (req, res) => {
 router.get("/admin/status", (req, res) => {
   if (!checkAdmin(req, res)) return;
   res.json({ luck_mode: getLuckMode() });
+});
+
+router.post("/admin/update-prices", async (req, res) => {
+  if (!checkAdmin(req, res)) return;
+  try {
+    clearGiftsCache();
+    const result = await updatePrices();
+    clearGiftsCache();
+    res.json({ success: true, ...result });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 export default router;

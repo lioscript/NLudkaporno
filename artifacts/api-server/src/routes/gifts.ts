@@ -15,6 +15,10 @@ function loadGifts(): any[] {
   return giftsCache!;
 }
 
+export function clearGiftsCache(): void {
+  giftsCache = null;
+}
+
 router.get("/gifts", (_req, res) => {
   const gifts = loadGifts();
   const sorted = [...gifts].sort((a, b) => a.price - b.price);

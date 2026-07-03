@@ -38,9 +38,9 @@ const imgCache = { maxAge: "1y", immutable: true };
 app.use("/images", express.static(imagesCachePath, imgCache));
 app.use("/api/images", express.static(imagesCachePath, imgCache));
 
-// Serve static assets at both / and /api/ (proxy may not strip prefix)
-app.use(express.static(publicPath, { maxAge: "1h" }));
-app.use("/api", express.static(publicPath, { maxAge: "1h" }));
+// Serve static assets — no cache for HTML/JS/CSS, images already handled above
+app.use(express.static(publicPath, { maxAge: 0, etag: false }));
+app.use("/api", express.static(publicPath, { maxAge: 0, etag: false }));
 
 // API routes (after static so static files take priority for asset paths)
 app.use("/api", router);

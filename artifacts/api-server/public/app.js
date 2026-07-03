@@ -331,7 +331,7 @@ async function doUpgrade() {
 
   } catch (e) {
     console.error(e);
-    alert('Network error, please try again');
+    showToast('Ошибка сети, попробуй ещё раз');
   } finally {
     resetSpinState();
   }
@@ -347,8 +347,17 @@ function resetSpinState() {
 
 // ─── Result ───────────────────────────────────────────────────────────────────
 
+function showToast(msg) {
+  const t = document.getElementById('errorToast');
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
 function showResult(win, chance) {
   const overlay = document.getElementById('resultOverlay');
+  if (!overlay) return;
   const title = document.getElementById('resultTitle');
   const imgInner = document.getElementById('resultImgInner');
   const nameEl = document.getElementById('resultGiftName');
@@ -358,17 +367,17 @@ function showResult(win, chance) {
 
   if (win) {
     overlay.className = 'result-overlay result-overlay--win show';
-    title.textContent = 'Вы выиграли!';
-    imgInner.innerHTML = gift ? imgWithFallback(encodeImageName(gift.image), gift.name, 'result-gift-img') : '';
-    nameEl.textContent = gift?.name || '';
-    priceEl.innerHTML = gift ? `⭐ ${gift.price.toLocaleString()}` : '';
+    if (title) title.textContent = 'Вы выиграли!';
+    if (imgInner) imgInner.innerHTML = gift ? imgWithFallback(encodeImageName(gift.image), gift.name, 'result-gift-img') : '';
+    if (nameEl) nameEl.textContent = gift?.name || '';
+    if (priceEl) priceEl.innerHTML = gift ? `⭐ ${gift.price.toLocaleString()}` : '';
     spawnConfetti();
   } else {
     overlay.className = 'result-overlay result-overlay--lose show';
-    title.textContent = 'Не повезло...';
-    imgInner.innerHTML = gift ? imgWithFallback(encodeImageName(gift.image), gift.name, 'result-gift-img') : '';
-    nameEl.textContent = gift?.name || '';
-    priceEl.innerHTML = gift ? `⭐ ${gift.price.toLocaleString()}` : '';
+    if (title) title.textContent = 'Не повезло...';
+    if (imgInner) imgInner.innerHTML = gift ? imgWithFallback(encodeImageName(gift.image), gift.name, 'result-gift-img') : '';
+    if (nameEl) nameEl.textContent = gift?.name || '';
+    if (priceEl) priceEl.innerHTML = gift ? `⭐ ${gift.price.toLocaleString()}` : '';
   }
 }
 
@@ -414,7 +423,7 @@ async function sellCurrentGift() {
       btn.innerHTML = `Продати за ⭐ <span id="giftDetailSellPrice">${g.price?.toLocaleString?.() || g.price}</span>`;
     }
   } catch (e) {
-    alert('Network error');
+    showToast('Ошибка сети');
     btn.disabled = false;
     btn.innerHTML = `Продати за ⭐ <span id="giftDetailSellPrice">${g.price?.toLocaleString?.() || g.price}</span>`;
   }

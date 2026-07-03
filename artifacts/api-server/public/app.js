@@ -138,6 +138,33 @@ function hideSplash() {
   setTimeout(() => splash.remove(), 450);
 }
 
+function startSplashVideo() {
+  const video = document.getElementById('splashVideo');
+  const fallback = document.getElementById('splashFallback');
+  if (!video) return;
+
+  const tryPlay = () => {
+    video.play().catch(() => {
+      // Video can't play — show CSS fallback
+      video.style.display = 'none';
+      if (fallback) fallback.style.display = 'flex';
+    });
+  };
+
+  if (video.readyState >= 2) {
+    tryPlay();
+  } else {
+    video.addEventListener('canplay', tryPlay, { once: true });
+    // If video doesn't load in 800ms, show fallback
+    setTimeout(() => {
+      if (video.paused) {
+        video.style.display = 'none';
+        if (fallback) fallback.style.display = 'flex';
+      }
+    }, 800);
+  }
+}
+
 async function preloadGiftImages(gifts) {
   if (!gifts || gifts.length === 0) return;
   await Promise.all(gifts.map(g => new Promise(resolve => {
@@ -151,6 +178,7 @@ async function preloadGiftImages(gifts) {
 // ─── Init ────────────────────────────────────────────────────────────────────
 
 async function init() {
+  startSplashVideo();
   setupUserInfo();
   await Promise.all([loadGifts(), loadInventory()]);
   await preloadGiftImages(allGifts);

@@ -348,7 +348,9 @@ html, body {
 .result-overlay.show { display: flex; }
 
 .result-overlay--win {
-  background: linear-gradient(170deg, #1a56b0 0%, #1340a0 40%, #0d2d80 100%);
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 38%, rgba(80,140,255,0.45) 0%, transparent 70%),
+    linear-gradient(170deg, #1a56b0 0%, #1340a0 40%, #0d2d80 100%);
 }
 
 .result-overlay--lose {
@@ -377,44 +379,64 @@ html, body {
 /* Sunray effect behind gift */
 .result-rays {
   position: absolute;
-  width: 340px;
-  height: 340px;
+  width: 520px;
+  height: 520px;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -58%);
-  background: conic-gradient(
-    rgba(255,255,255,0.10) 0deg, transparent 8deg,
-    rgba(255,255,255,0.10) 16deg, transparent 24deg,
-    rgba(255,255,255,0.10) 32deg, transparent 40deg,
-    rgba(255,255,255,0.10) 48deg, transparent 56deg,
-    rgba(255,255,255,0.10) 64deg, transparent 72deg,
-    rgba(255,255,255,0.10) 80deg, transparent 88deg,
-    rgba(255,255,255,0.10) 96deg, transparent 104deg,
-    rgba(255,255,255,0.10) 112deg, transparent 120deg,
-    rgba(255,255,255,0.10) 128deg, transparent 136deg,
-    rgba(255,255,255,0.10) 144deg, transparent 152deg,
-    rgba(255,255,255,0.10) 160deg, transparent 168deg,
-    rgba(255,255,255,0.10) 176deg, transparent 184deg,
-    rgba(255,255,255,0.10) 192deg, transparent 200deg,
-    rgba(255,255,255,0.10) 208deg, transparent 216deg,
-    rgba(255,255,255,0.10) 224deg, transparent 232deg,
-    rgba(255,255,255,0.10) 240deg, transparent 248deg,
-    rgba(255,255,255,0.10) 256deg, transparent 264deg,
-    rgba(255,255,255,0.10) 272deg, transparent 280deg,
-    rgba(255,255,255,0.10) 288deg, transparent 296deg,
-    rgba(255,255,255,0.10) 304deg, transparent 312deg,
-    rgba(255,255,255,0.10) 320deg, transparent 328deg,
-    rgba(255,255,255,0.10) 336deg, transparent 344deg,
-    rgba(255,255,255,0.10) 352deg, transparent 360deg
-  );
+  transform: translate(-50%, -54%) rotate(0deg);
   border-radius: 50%;
-  animation: rotateSlow 12s linear infinite;
+  background: repeating-conic-gradient(
+    from 0deg,
+    transparent           0deg,
+    transparent           3deg,
+    rgba(255,255,255,0.13) 5deg,
+    rgba(255,255,255,0.18) 7deg,
+    rgba(255,255,255,0.13) 9deg,
+    transparent          11deg,
+    transparent          20deg
+  );
+  -webkit-mask-image: radial-gradient(
+    circle at 50% 50%,
+    transparent 10%,
+    rgba(0,0,0,0.6) 28%,
+    black 45%,
+    black 65%,
+    rgba(0,0,0,0.3) 78%,
+    transparent 90%
+  );
+  mask-image: radial-gradient(
+    circle at 50% 50%,
+    transparent 10%,
+    rgba(0,0,0,0.6) 28%,
+    black 45%,
+    black 65%,
+    rgba(0,0,0,0.3) 78%,
+    transparent 90%
+  );
+  animation: rotateSlow 14s linear infinite;
   pointer-events: none;
+}
+
+/* Central glow pulse */
+.result-rays::after {
+  content: '';
+  position: absolute;
+  inset: 20%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(120,180,255,0.22) 0%, transparent 70%);
+  animation: glowPulse 2.4s ease-in-out infinite;
 }
 
 .result-overlay--lose .result-rays { display: none; }
 
-@keyframes rotateSlow { to { transform: translate(-50%, -58%) rotate(360deg); } }
+@keyframes rotateSlow {
+  to { transform: translate(-50%, -54%) rotate(360deg); }
+}
+
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.6; transform: scale(0.95); }
+  50%       { opacity: 1;   transform: scale(1.08); }
+}
 
 .result-title {
   font-size: 30px;

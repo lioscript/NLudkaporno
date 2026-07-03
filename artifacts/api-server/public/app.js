@@ -122,7 +122,7 @@ async function preloadGiftImages(gifts) {
     const filename = (g.image || '').split('/').pop();
     const img = new Image();
     img.onload = img.onerror = resolve;
-    img.src = `images/${encodeURIComponent(filename)}`;
+    img.src = `images/${encodeURIComponent(filename)}?v=${IMG_VER}`;
   })));
 }
 
@@ -228,9 +228,10 @@ function drawWinArc(chance) {
   arc.setAttribute('stroke-dashoffset', dashoffset.toFixed(2));
 }
 
+const IMG_VER = '2';
 function encodeImageName(imagePath) {
   const filename = (imagePath || '').split('/').pop();
-  return `images/${encodeURIComponent(filename)}`;
+  return `images/${encodeURIComponent(filename)}?v=${IMG_VER}`;
 }
 
 async function spinWheel(win, chance) {

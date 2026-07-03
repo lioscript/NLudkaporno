@@ -32,9 +32,15 @@ app.use(express.urlencoded({ extended: true }));
 
 const publicPath = path.resolve(__dirname, "public");
 
+// Images are versioned (?v=N) — cache aggressively for 1 year
+const imagesCachePath = path.resolve(publicPath, "images");
+const imgCache = { maxAge: "1y", immutable: true };
+app.use("/images", express.static(imagesCachePath, imgCache));
+app.use("/api/images", express.static(imagesCachePath, imgCache));
+
 // Serve static assets at both / and /api/ (proxy may not strip prefix)
-app.use(express.static(publicPath));
-app.use("/api", express.static(publicPath));
+app.use(express.static(publicPath, { maxAge: "1h" }));
+app.use("/api", express.static(publicPath, { maxAge: "1h" }));
 
 // API routes (after static so static files take priority for asset paths)
 app.use("/api", router);

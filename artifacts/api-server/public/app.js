@@ -309,7 +309,7 @@ async function doUpgrade() {
 
     const data = await res.json();
     if (!res.ok) {
-      alert(data.error || 'Upgrade failed');
+      showToast(data.error || 'Upgrade failed');
       resetSpinState();
       return;
     }
@@ -331,7 +331,7 @@ async function doUpgrade() {
 
   } catch (e) {
     console.error(e);
-    showToast('Ошибка сети, попробуй ещё раз');
+    showToast('Помилка мережі, спробуй ще раз');
   } finally {
     resetSpinState();
   }

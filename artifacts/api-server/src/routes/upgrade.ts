@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getUserInventory, addGiftToInventory, removeGiftFromInventory, getLuckMode } from "../db.js";
+import { getUserInventory, addGiftToInventory, removeGiftFromInventory, getLuckMode, getRecentWins } from "../db.js";
 import { verifyInitData, extractUserId } from "../lib/telegram.js";
 import { loadGifts } from "./gifts.js";
 

@@ -119,10 +119,14 @@
     <!-- Result overlay -->
     <div class="result-overlay" id="resultOverlay">
       <div class="result-content" id="resultContent">
-        <div class="result-icon" id="resultIcon"></div>
+        <div class="result-rays" id="resultRays"></div>
         <div class="result-title" id="resultTitle"></div>
-        <div class="result-gift" id="resultGift"></div>
-        <button class="result-close-btn" onclick="closeResult()">Continue</button>
+        <div class="result-img-wrap">
+          <div id="resultImgInner"></div>
+        </div>
+        <div class="result-gift-name" id="resultGiftName"></div>
+        <div class="result-gift-price" id="resultGiftPrice"></div>
+        <button class="result-close-btn" onclick="closeResult()" id="resultCloseBtn">Продолжить</button>
       </div>
     </div>
 

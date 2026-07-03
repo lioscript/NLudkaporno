@@ -349,32 +349,32 @@ function resetSpinState() {
 
 function showResult(win, chance) {
   const overlay = document.getElementById('resultOverlay');
-  const icon = document.getElementById('resultIcon');
   const title = document.getElementById('resultTitle');
-  const giftEl = document.getElementById('resultGift');
+  const imgInner = document.getElementById('resultImgInner');
+  const nameEl = document.getElementById('resultGiftName');
+  const priceEl = document.getElementById('resultGiftPrice');
+
+  const gift = win ? targetGift : betGift;
 
   if (win) {
-    icon.textContent = '🎉';
-    title.textContent = 'YOU WIN!';
-    title.className = 'result-title win';
-    giftEl.textContent = `You got: ${targetGift?.name || ''}`;
+    overlay.className = 'result-overlay result-overlay--win show';
+    title.textContent = 'Вы выиграли!';
+    imgInner.innerHTML = gift ? imgWithFallback(encodeImageName(gift.image), gift.name, 'result-gift-img') : '';
+    nameEl.textContent = gift?.name || '';
+    priceEl.innerHTML = gift ? `⭐ ${gift.price.toLocaleString()}` : '';
     spawnConfetti();
-    document.getElementById('app').classList.add('win-flash');
-    setTimeout(() => document.getElementById('app').classList.remove('win-flash'), 500);
   } else {
-    icon.textContent = '💔';
-    title.textContent = 'YOU LOSE';
-    title.className = 'result-title lose';
-    giftEl.textContent = `Better luck next time (${chance}% chance)`;
-    document.getElementById('app').classList.add('lose-flash');
-    setTimeout(() => document.getElementById('app').classList.remove('lose-flash'), 500);
+    overlay.className = 'result-overlay result-overlay--lose show';
+    title.textContent = 'Не повезло...';
+    imgInner.innerHTML = gift ? imgWithFallback(encodeImageName(gift.image), gift.name, 'result-gift-img') : '';
+    nameEl.textContent = gift?.name || '';
+    priceEl.innerHTML = gift ? `⭐ ${gift.price.toLocaleString()}` : '';
   }
-
-  overlay.classList.add('show');
 }
 
 function closeResult() {
-  document.getElementById('resultOverlay').classList.remove('show');
+  const el = document.getElementById('resultOverlay');
+  el.className = 'result-overlay';
 }
 
 // ─── Gift Detail Modal ────────────────────────────────────────────────────────

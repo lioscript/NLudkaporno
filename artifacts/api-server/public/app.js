@@ -51,6 +51,22 @@ let isSpinning = false;
 let currentNeedleRotation = 0;
 let currentDetailGift = null;
 
+// ─── Haptic Feedback ──────────────────────────────────────────────────────────
+
+const haptic = tg?.HapticFeedback;
+
+function hapticImpact(style = 'light') {
+  try { haptic?.impactOccurred(style); } catch (e) {}
+}
+
+function hapticNotification(type) {
+  try { haptic?.notificationOccurred(type); } catch (e) {}
+}
+
+function hapticSelection() {
+  try { haptic?.selectionChanged(); } catch (e) {}
+}
+
 // ─── Sound Engine ─────────────────────────────────────────────────────────────
 let audioCtx = null;
 function getAudio() {
@@ -79,28 +95,34 @@ function playTone(freq, dur, type = 'sine', vol = 0.12, delay = 0) {
 }
 
 function playClick() {
+  hapticImpact('light');
   playTone(900, 0.04, 'sine', 0.08);
 }
 
 function playUpgradeStart() {
+  hapticImpact('heavy');
   playTone(220, 0.15, 'square', 0.06);
   playTone(330, 0.15, 'square', 0.05, 0.1);
   playTone(440, 0.25, 'square', 0.05, 0.2);
 }
 
 function playTick(speed = 1) {
+  hapticSelection();
   playTone(700 + Math.random() * 100, 0.025, 'square', 0.04 * speed);
 }
 
 function playWin() {
+  hapticNotification('success');
   [523, 659, 784, 1047].forEach((f, i) => playTone(f, 0.18, 'sine', 0.15, i * 0.13));
 }
 
 function playLose() {
+  hapticNotification('error');
   [400, 280, 180].forEach((f, i) => playTone(f, 0.22, 'sine', 0.12, i * 0.18));
 }
 
 function playSell() {
+  hapticImpact('medium');
   playTone(800, 0.06, 'sine', 0.1);
   playTone(1000, 0.1, 'sine', 0.1, 0.07);
 }

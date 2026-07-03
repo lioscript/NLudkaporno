@@ -92,8 +92,9 @@ export function startBot(): void {
   bot.onText(/\/start/, (msg: any) => {
     const chatId = msg.chat.id;
     const replitDomain = process.env["REPLIT_DEV_DOMAIN"];
-    const miniAppUrl = process.env["MINI_APP_URL"]
-      ?? (replitDomain ? `https://${replitDomain}/api` : "https://t.me");
+    const miniAppUrl = replitDomain
+      ? `https://${replitDomain}/api`
+      : (process.env["MINI_APP_URL"] ?? "https://t.me");
     bot.sendMessage(
       chatId,
       "🎁 Добро пожаловать в NFT Gift Upgrader!\n\nНажмите кнопку ниже, чтобы открыть приложение.",

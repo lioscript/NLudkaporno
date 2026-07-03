@@ -104,15 +104,27 @@ export async function startBot(): Promise<void> {
     const miniAppUrl = replitDomain
       ? `https://${replitDomain}/api`
       : (process.env["MINI_APP_URL"] ?? "https://t.me");
+
+    const chatUrl = process.env["CHAT_URL"];
+    const channelUrl = process.env["CHANNEL_URL"];
+
+    const keyboard: any[][] = [
+      [{ text: "🎰 Играть", web_app: { url: miniAppUrl } }],
+    ];
+
+    if (chatUrl || channelUrl) {
+      const row: any[] = [];
+      if (chatUrl) row.push({ text: "💬 Чат", url: chatUrl });
+      if (channelUrl) row.push({ text: "📢 Канал", url: channelUrl });
+      keyboard.push(row);
+    }
+
     bot.sendMessage(
       chatId,
-      "🎁 Добро пожаловать в NFT Gift Upgrader!\n\nНажмите кнопку ниже, чтобы открыть приложение.",
+      "🎁🎩 *Выиграйте NFT\\-подарки мечты\\!*\n\nАпгрейдите свои подарки и выигрывайте более ценные\\. Удача на вашей стороне\\!",
       {
-        reply_markup: {
-          inline_keyboard: [
-            [{ text: "🎰 Открыть апгрейдер", web_app: { url: miniAppUrl } }],
-          ],
-        },
+        parse_mode: "MarkdownV2",
+        reply_markup: { inline_keyboard: keyboard },
       }
     );
   });

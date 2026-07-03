@@ -6,3 +6,9 @@ id = "mn9ynshAN1o3yhgoLFmRJ"
 uri = "file://gift-images.tar.gz"
 type = "unspecified"
 title = "Gift Images (107 PNG без фону)"
+
+[[outputs]]
+id = "v8tau6TLqdxidHy7Rk81_"
+uri = "file://gift-images-official.tar.gz"
+type = "unspecified"
+title = "107 NFT Gift Images (офіційні з Telegram CDN)"

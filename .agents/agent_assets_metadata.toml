@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "mn9ynshAN1o3yhgoLFmRJ"
+uri = "file://gift-images.tar.gz"
+type = "unspecified"
+title = "Gift Images (107 PNG без фону)"

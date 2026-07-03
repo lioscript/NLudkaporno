@@ -228,7 +228,7 @@ function drawWinArc(chance) {
   arc.setAttribute('stroke-dashoffset', dashoffset.toFixed(2));
 }
 
-const IMG_VER = '2';
+const IMG_VER = '3';
 function encodeImageName(imagePath) {
   const filename = (imagePath || '').split('/').pop();
   return `images/${encodeURIComponent(filename)}?v=${IMG_VER}`;

@@ -79,13 +79,22 @@ function askForPlayerId(chatId: string) {
   });
 }
 
-export function startBot(): void {
+export async function startBot(): Promise<void> {
   if (!BOT_TOKEN) {
     logger.warn("TELEGRAM_BOT_TOKEN not set — bot will not start");
     return;
   }
 
   const TelegramBot = require("node-telegram-bot-api");
+
+  // Delete any existing webhook so polling works correctly
+  try {
+    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/deleteWebhook?drop_pending_updates=true`);
+    logger.info("Webhook deleted, starting polling");
+  } catch (e) {
+    logger.warn({ e }, "Could not delete webhook");
+  }
+
   bot = new TelegramBot(BOT_TOKEN, { polling: true });
 
   // /start

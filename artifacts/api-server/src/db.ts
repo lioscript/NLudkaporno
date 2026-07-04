@@ -32,6 +32,12 @@ db.exec(`
   );
 
   INSERT OR IGNORE INTO admin_settings (key, value) VALUES ('luck_mode', 'normal');
+
+  CREATE TABLE IF NOT EXISTS known_users (
+    telegram_id TEXT PRIMARY KEY,
+    username TEXT,
+    first_seen TEXT NOT NULL DEFAULT (datetime('now'))
+  );
 `);
 
 export function getUserInventory(telegramId: string): string[] {
@@ -88,6 +94,15 @@ export function getRecentWins(limit = 20): { winner_name: string; bet_gift: stri
   return db
     .prepare("SELECT winner_name, bet_gift, target_gift, target_price, won_at FROM upgrade_history ORDER BY id DESC LIMIT ?")
     .all(limit) as any[];
+}
+
+export function isNewUser(telegramId: string): boolean {
+  const row = db.prepare("SELECT telegram_id FROM known_users WHERE telegram_id = ?").get(telegramId);
+  return !row;
+}
+
+export function markUserKnown(telegramId: string, username?: string): void {
+  db.prepare("INSERT OR IGNORE INTO known_users (telegram_id, username) VALUES (?, ?)").run(telegramId, username ?? null);
 }
 
 export default db;

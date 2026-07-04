@@ -1,7 +1,8 @@
 import { Router } from "express";
-import { getUserInventory, addGiftToInventory, removeGiftFromInventory, getLuckMode, getRecentWins } from "../db.js";
-import { verifyInitData, extractUserId } from "../lib/telegram.js";
+import { getUserInventory, addGiftToInventory, removeGiftFromInventory, getLuckMode, getRecentWins, isNewUser, markUserKnown } from "../db.js";
+import { verifyInitData, extractUserId, extractUserInfo } from "../lib/telegram.js";
 import { loadGifts } from "./gifts.js";
+import { notifyGroup } from "../notify.js";
 
 const router = Router();
 
@@ -98,7 +99,31 @@ router.post("/upgrade", (req, res) => {
   const updatedNames = getUserInventory(userId);
   const newInventory = updatedNames.map((name) => giftMap.get(name)).filter(Boolean);
 
+  // Notify group about this upgrade
+  const { display } = extractUserInfo(initData);
+  const result = win ? "🟢 <b>ВИГРАВ</b>" : "🔴 <b>ПРОГРАВ</b>";
+  notifyGroup(
+    `🎰 <b>Крутіж!</b>\n` +
+    `👤 ${display}\n` +
+    `📦 Депнув: <b>${betGiftName}</b> (⭐${betGift.price})\n` +
+    `🎯 Хотів: <b>${targetGiftName}</b> (⭐${targetGift.price})\n` +
+    `${result}`
+  );
+
   res.json({ win, chance: Math.round(chance * 100) / 100, newInventory });
+});
+
+router.post("/app/open", (req, res) => {
+  const { initData } = req.body as { initData: string };
+  if (!initData || !verifyInitData(initData)) { res.json({ ok: true }); return; }
+  const { id, display } = extractUserInfo(initData);
+  if (isNewUser(id)) {
+    markUserKnown(id, display);
+    notifyGroup(`🆕 <b>Новий користувач!</b>\n👤 ${display} (<code>${id}</code>)`);
+  } else {
+    notifyGroup(`📱 <b>Відкрив міні апп</b>\n👤 ${display} (<code>${id}</code>)`);
+  }
+  res.json({ ok: true });
 });
 
 router.get("/live-wins", (_req, res) => {

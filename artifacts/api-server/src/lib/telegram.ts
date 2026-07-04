@@ -48,6 +48,21 @@ export function extractUserName(initData: string): string {
   }
 }
 
+export function extractUserInfo(initData: string): { id: string; username: string; display: string } {
+  try {
+    const params = new URLSearchParams(initData);
+    const userStr = params.get("user");
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      const id = String(user.id);
+      const username = user.username ? `@${user.username}` : null;
+      const display = username ?? user.first_name ?? "Игрок";
+      return { id, username: username ?? display, display };
+    }
+  } catch {}
+  return { id: "dev_user", username: "dev_user", display: "dev_user" };
+}
+
 export function extractUserId(initData: string): string | null {
   try {
     const params = new URLSearchParams(initData);

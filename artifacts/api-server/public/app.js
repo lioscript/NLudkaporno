@@ -170,6 +170,12 @@ async function preloadGiftImages(gifts) {
 async function init() {
   startSplashVideo();
   setupUserInfo();
+  // Notify group that user opened the mini app (fire and forget)
+  fetch(`${BASE}/api/app/open`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ initData: getInitData() }),
+  }).catch(() => {});
   await Promise.all([loadGifts(), loadInventory()]);
   await preloadGiftImages(allGifts);
   initSpinner();

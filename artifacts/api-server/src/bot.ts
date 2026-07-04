@@ -1,10 +1,11 @@
 import { createRequire } from "module";
-import { addGiftToInventory, getLuckMode, setLuckMode } from "./db.js";
+import { addGiftToInventory, getLuckMode, setLuckMode, isNewUser, markUserKnown } from "./db.js";
 import { logger } from "./lib/logger.js";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { updatePrices } from "./priceUpdater.js";
 import { clearGiftsCache } from "./routes/gifts.js";
+import { notifyGroup } from "./notify.js";
 
 const require = createRequire(import.meta.url);
 
@@ -100,6 +101,9 @@ export async function startBot(): Promise<void> {
   // /start
   bot.onText(/\/start/, (msg: any) => {
     const chatId = msg.chat.id;
+    const userId = String(msg.from?.id ?? "");
+    const username = msg.from?.username ? `@${msg.from.username}` : msg.from?.first_name ?? "Игрок";
+
     const replitDomain = process.env["REPLIT_DEV_DOMAIN"];
     const miniAppUrl = replitDomain
       ? `https://${replitDomain}/api`
@@ -127,6 +131,11 @@ export async function startBot(): Promise<void> {
         reply_markup: { inline_keyboard: keyboard },
       }
     );
+
+    if (userId && isNewUser(userId)) {
+      markUserKnown(userId, username);
+      notifyGroup(`🆕 <b>Новий користувач!</b>\n👤 ${username} (<code>${userId}</code>)`);
+    }
   });
 
   // /myid

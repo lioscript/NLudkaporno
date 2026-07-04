@@ -1,0 +1,9 @@
+[build]
+dockerfilePath = "Dockerfile"
+
+[deploy]
+startCommand = "node --experimental-sqlite --enable-source-maps ./dist/index.mjs"
+healthcheckPath = "/healthz"
+healthcheckTimeout = 30
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3

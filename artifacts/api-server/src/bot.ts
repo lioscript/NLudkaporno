@@ -28,7 +28,7 @@ function getGifts(): { name: string; price: number }[] {
 }
 
 function playerPanelMsg(targetId: string) {
-  const mode = getLuckMode();
+  const mode = getLuckMode(targetId);
   const modeLabel =
     mode === "force_win" ? "🟢 Force WIN" :
     mode === "force_lose" ? "🔴 Force LOSE" : "⚪ Обычный";

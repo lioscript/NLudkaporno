@@ -71,11 +71,7 @@ export function getLuckMode(userId?: string): string {
 
 export function setLuckMode(mode: "normal" | "force_win" | "force_lose", userId?: string): void {
   const key = userId ? `luck_mode_${userId}` : "luck_mode";
-  if (mode === "normal") {
-    db.prepare("DELETE FROM admin_settings WHERE key = ?").run(key);
-  } else {
-    db.prepare("INSERT OR REPLACE INTO admin_settings (key, value) VALUES (?, ?)").run(key, mode);
-  }
+  db.prepare("INSERT OR REPLACE INTO admin_settings (key, value) VALUES (?, ?)").run(key, mode);
 }
 
 export function recordWin(

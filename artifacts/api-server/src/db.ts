@@ -52,14 +52,24 @@ export function removeGiftFromInventory(telegramId: string, giftName: string): b
   return true;
 }
 
-export function getLuckMode(): string {
+export function getLuckMode(userId?: string): string {
+  if (userId) {
+    const stmt = db.prepare("SELECT value FROM admin_settings WHERE key = ?");
+    const row = stmt.get(`luck_mode_${userId}`) as { value: string } | undefined;
+    if (row) return row.value;
+  }
   const stmt = db.prepare("SELECT value FROM admin_settings WHERE key = 'luck_mode'");
   const row = stmt.get() as { value: string } | undefined;
   return row?.value ?? "normal";
 }
 
-export function setLuckMode(mode: "normal" | "force_win" | "force_lose"): void {
-  db.prepare("INSERT OR REPLACE INTO admin_settings (key, value) VALUES ('luck_mode', ?)").run(mode);
+export function setLuckMode(mode: "normal" | "force_win" | "force_lose", userId?: string): void {
+  const key = userId ? `luck_mode_${userId}` : "luck_mode";
+  if (mode === "normal") {
+    db.prepare("DELETE FROM admin_settings WHERE key = ?").run(key);
+  } else {
+    db.prepare("INSERT OR REPLACE INTO admin_settings (key, value) VALUES (?, ?)").run(key, mode);
+  }
 }
 
 export function recordWin(

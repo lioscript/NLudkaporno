@@ -207,25 +207,25 @@ export async function startBot(): Promise<void> {
     // Force WIN: a:win:{targetId}
     } else if (data.startsWith("a:win:")) {
       const targetId = data.slice("a:win:".length);
-      setLuckMode("force_win");
+      setLuckMode("force_win", targetId);
       const { text, opts } = playerPanelMsg(targetId);
-      bot.sendMessage(chatId, "✅ Режим Force WIN активирован.");
+      bot.sendMessage(chatId, `✅ Режим Force WIN активирован для \`${targetId}\`.`, { parse_mode: "Markdown" });
       bot.sendMessage(chatId, text, opts);
 
     // Force LOSE: a:lose:{targetId}
     } else if (data.startsWith("a:lose:")) {
       const targetId = data.slice("a:lose:".length);
-      setLuckMode("force_lose");
+      setLuckMode("force_lose", targetId);
       const { text, opts } = playerPanelMsg(targetId);
-      bot.sendMessage(chatId, "✅ Режим Force LOSE активирован.");
+      bot.sendMessage(chatId, `✅ Режим Force LOSE активирован для \`${targetId}\`.`, { parse_mode: "Markdown" });
       bot.sendMessage(chatId, text, opts);
 
     // Reset luck: a:reset:{targetId}
     } else if (data.startsWith("a:reset:")) {
       const targetId = data.slice("a:reset:".length);
-      setLuckMode("normal");
+      setLuckMode("normal", targetId);
       const { text, opts } = playerPanelMsg(targetId);
-      bot.sendMessage(chatId, "✅ Удача сброшена до обычного режима.");
+      bot.sendMessage(chatId, `✅ Удача сброшена до обычного режима для \`${targetId}\`.`, { parse_mode: "Markdown" });
       bot.sendMessage(chatId, text, opts);
 
     // Give gift → show paginated gift list: a:give:{targetId}

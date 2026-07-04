@@ -74,7 +74,7 @@ router.post("/upgrade", (req, res) => {
   const chance = Math.min((betGift.price / targetGift.price) * 100, 82);
 
   // Determine outcome
-  const luckMode = getLuckMode();
+  const luckMode = getLuckMode(userId);
   let win: boolean;
   if (luckMode === "force_win") {
     win = true;

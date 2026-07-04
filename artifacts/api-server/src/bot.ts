@@ -145,6 +145,13 @@ export async function startBot(): Promise<void> {
     });
   });
 
+  // /chatid — show current chat ID (for groups)
+  bot.onText(/\/chatid/, (msg: any) => {
+    bot.sendMessage(msg.chat.id, `🆔 ID цього чату: \`${msg.chat.id}\``, {
+      parse_mode: "Markdown",
+    });
+  });
+
   // /adm — ask for player ID first
   bot.onText(/\/adm/, (msg: any) => {
     const chatId = String(msg.chat.id);

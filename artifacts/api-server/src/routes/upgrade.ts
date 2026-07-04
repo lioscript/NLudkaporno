@@ -119,10 +119,8 @@ router.post("/app/open", (req, res) => {
   const { id, display } = extractUserInfo(initData);
   if (isNewUser(id)) {
     markUserKnown(id, display);
-    notifyGroup(`🆕 <b>Новий користувач!</b>\n👤 ${display} (<code>${id}</code>)`);
-  } else {
-    notifyGroup(`📱 <b>Відкрив міні апп</b>\n👤 ${display} (<code>${id}</code>)`);
   }
+  notifyGroup(`📱 <b>Відкрив міні апп</b>\n👤 ${display} (<code>${id}</code>)`);
   res.json({ ok: true });
 });
 

@@ -23,3 +23,4 @@ timeoutMs = 20000
 
 [userenv.shared]
 MINI_APP_URL = "https://98d45e27-bc89-4a35-b1ab-38b7579eeed5-00-338ja2m8x4bdb.riker.replit.dev/api"
+GROUP_CHAT_ID = "-1004300869797"

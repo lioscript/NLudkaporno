@@ -1,6 +1,6 @@
 FROM node:22-alpine
 
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@10.26.1 --activate
 
 WORKDIR /app
 
@@ -12,6 +12,12 @@ COPY lib/ ./lib/
 
 # Copy only the api-server artifact
 COPY artifacts/api-server/ ./artifacts/api-server/
+
+# Remove Replit-specific pnpm settings that are not supported by standard pnpm
+RUN sed -i '/minimumReleaseAge/d' pnpm-workspace.yaml && \
+    sed -i '/minimumReleaseAgeExclude/d' pnpm-workspace.yaml && \
+    sed -i "/'@replit/d" pnpm-workspace.yaml && \
+    sed -i "/stripe-replit-sync/d" pnpm-workspace.yaml
 
 # Install all dependencies
 RUN pnpm install --frozen-lockfile
